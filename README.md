@@ -13,7 +13,7 @@ SafeNet AI is a centralized Smart Home Residence Management System designed to e
 | **👮 Admin Dashboard** | **📷 Camera Management** |
 | <img src="screenshots/adminhome.png" width="600"/> | <img src="screenshots/admin_add_camera.png" width="600"/> |
 | **💬 Authority Chat (AI Moderated)** | |
-| <img src="screenshots/authority_chat.png" width="600"/> | |
+| <img src="screenshots/authority_chat_page.png" width="600"/> | |
 
 ---
 
