@@ -1,0 +1,437 @@
+{% extends 'admin_sidebar.html' %}
+{% block page_title %}Emergency Alerts{% endblock %}
+
+{% block content %}
+<style>
+  .page-wrap { padding: 32px 36px; }
+
+  .page-hdr {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:28px; flex-wrap:wrap; gap:14px;
+    animation: fadeUp 0.5s ease both;
+  }
+  .page-hdr-left { display:flex; align-items:center; gap:14px; }
+  .page-hdr-ico {
+    width:48px; height:48px; border-radius:13px; flex-shrink:0;
+    background:linear-gradient(135deg,#ef4444,#f87171);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1.2rem;
+    box-shadow:0 0 20px rgba(239,68,68,0.3);
+  }
+  .page-hdr-title { font-family:var(--font-h); font-size:1.45rem; font-weight:800; color:var(--text); letter-spacing:-0.4px; }
+  .page-hdr-sub   { font-family:var(--font-b); font-size:0.82rem; color:var(--muted); margin-top:2px; }
+
+  .count-pill {
+    font-family:var(--font-b); font-size:0.75rem; font-weight:700;
+    padding:6px 14px; border-radius:20px;
+    background:rgba(0,212,255,0.08); border:1px solid rgba(0,212,255,0.18);
+    color:var(--accent); white-space:nowrap;
+  }
+
+  /* Filter bar */
+  .filter-bar {
+    display:flex; align-items:center; gap:12px; margin-bottom:24px;
+    animation: fadeUp 0.5s 0.06s ease both; flex-wrap:wrap;
+  }
+  .search-wrap { position:relative; flex:1; min-width:220px; }
+  .search-wrap i {
+    position:absolute; left:13px; top:50%; transform:translateY(-50%);
+    color:var(--muted); font-size:0.95rem; pointer-events:none;
+  }
+  .search-wrap input {
+    width:100%; background:var(--bg-card); border:1px solid var(--border);
+    border-radius:10px; padding:10px 14px 10px 38px;
+    color:var(--text); font-family:var(--font-b); font-size:0.85rem;
+    outline:none; transition:border-color 0.2s;
+  }
+  .search-wrap input:focus { border-color:rgba(0,212,255,0.4); }
+  .search-wrap input::placeholder { color:var(--muted); }
+
+  /* Cards grid */
+  .cards-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap:18px;
+    animation: fadeUp 0.5s 0.12s ease both;
+  }
+
+  /* Alert card */
+  .auth-card {
+    background:var(--bg-card); border:1px solid var(--border);
+    border-radius:16px; overflow:hidden;
+    transition:transform 0.22s, box-shadow 0.22s, border-color 0.22s;
+    position:relative;
+  }
+  .auth-card:hover {
+    transform:translateY(-5px);
+    box-shadow:0 18px 48px rgba(0,0,0,0.35);
+    border-color:rgba(239,68,68,0.22);
+  }
+  .auth-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,#ef4444,#f87171,#fca5a5);
+    opacity:0; transition:opacity 0.22s;
+  }
+  .auth-card:hover::before { opacity:1; }
+
+  /* Banner */
+  .card-banner {
+    height:100px; overflow:hidden; position:relative;
+    background:linear-gradient(135deg,rgba(239,68,68,0.15),rgba(248,113,113,0.06));
+    border-bottom:1px solid var(--border);
+  }
+  .banner-grid {
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(239,68,68,0.05) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(239,68,68,0.05) 1px,transparent 1px);
+    background-size:22px 22px;
+  }
+  .banner-glow {
+    position:absolute; top:-50px; right:-50px;
+    width:200px; height:200px; border-radius:50%;
+    background:radial-gradient(circle,rgba(239,68,68,0.1) 0%,transparent 65%);
+    pointer-events:none;
+  }
+
+  /* SOS badge overlay */
+  .alert-badge-overlay {
+    position:absolute; top:10px; right:10px;
+    display:inline-flex; align-items:center; gap:5px;
+    font-family:var(--font-b); font-size:0.65rem; font-weight:700;
+    letter-spacing:0.08em; text-transform:uppercase;
+    color:#f87171; background:rgba(239,68,68,0.15);
+    border:1px solid rgba(239,68,68,0.3); border-radius:20px;
+    padding:4px 10px; backdrop-filter:blur(6px);
+  }
+  .badge-dot { width:5px; height:5px; border-radius:50%; background:currentColor; animation:livePulse 2s infinite; }
+
+  /* Alert type pill */
+  .alert-type-pill {
+    position:absolute; bottom:10px; left:12px;
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:var(--font-b); font-size:0.68rem; font-weight:700;
+    letter-spacing:0.06em; text-transform:uppercase;
+    padding:5px 12px; border-radius:20px; backdrop-filter:blur(6px);
+  }
+  .alert-type-pill.panic  { color:#fca5a5; background:rgba(239,68,68,0.18);   border:1px solid rgba(239,68,68,0.3); }
+  .alert-type-pill.volume { color:#fbbf24; background:rgba(245,158,11,0.15);  border:1px solid rgba(245,158,11,0.28); }
+  .alert-type-pill.shake  { color:#a78bfa; background:rgba(139,92,246,0.15);  border:1px solid rgba(139,92,246,0.28); }
+
+  /* Card body */
+  .card-body { padding:18px 20px 16px; }
+
+  .card-name {
+    font-family:var(--font-h); font-size:1rem; font-weight:800;
+    color:var(--text); letter-spacing:-0.2px; margin-bottom:2px;
+  }
+  .card-username {
+    font-family:var(--font-b); font-size:0.72rem; color:var(--accent);
+    font-weight:600; margin-bottom:14px;
+  }
+
+  /* Info rows */
+  .card-info { display:flex; flex-direction:column; gap:7px; }
+  .card-info-row {
+    display:flex; align-items:center; gap:9px;
+    font-family:var(--font-b); font-size:0.78rem; color:var(--muted);
+  }
+  .card-info-row i { color:var(--accent2); font-size:0.85rem; width:16px; flex-shrink:0; }
+  .card-info-row span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  /* Card footer */
+  .card-footer {
+    border-top:1px solid var(--border); padding:13px 20px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .footer-date {
+    font-family:var(--font-b); font-size:0.72rem; color:var(--muted);
+    display:flex; align-items:center; gap:6px;
+  }
+  .footer-date i { color:#ef4444; }
+
+  .btn-location {
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:var(--font-b); font-size:0.75rem; font-weight:700;
+    color:var(--accent); text-decoration:none;
+    padding:7px 14px; border-radius:8px;
+    background:rgba(0,212,255,0.07); border:1px solid rgba(0,212,255,0.15);
+    transition:all 0.2s; cursor:pointer;
+  }
+  .btn-location:hover { background:rgba(0,212,255,0.14); color:var(--accent); transform:translateY(-1px); }
+
+  /* Empty state */
+  .empty-state { text-align:center; padding:80px 20px; grid-column:1/-1; }
+  .empty-ico {
+    width:72px; height:72px; border-radius:20px; margin:0 auto 16px;
+    background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.18);
+    display:flex; align-items:center; justify-content:center;
+    color:#ef4444; font-size:2rem;
+  }
+  .empty-title { font-family:var(--font-h); font-size:1.1rem; font-weight:700; color:var(--text); margin-bottom:6px; }
+  .empty-sub   { font-family:var(--font-b); font-size:0.85rem; color:var(--muted); }
+
+  /* ── Map Modal ── */
+  .modal-bg {
+    display:none; position:fixed; inset:0;
+    background:rgba(2,8,16,0.85); backdrop-filter:blur(8px);
+    z-index:999; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-bg.show { display:flex; }
+
+  .modal-box {
+    background:var(--bg-card); border:1px solid rgba(0,212,255,0.2);
+    border-radius:18px; width:100%; max-width:680px;
+    overflow:hidden; position:relative;
+    animation:fadeUp 0.25s ease both;
+    box-shadow:0 32px 80px rgba(0,0,0,0.6);
+  }
+  .modal-box::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,#ef4444,var(--accent),var(--accent3));
+    border-radius:18px 18px 0 0;
+  }
+
+  .modal-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 22px 14px; border-bottom:1px solid var(--border);
+  }
+  .modal-title-wrap { display:flex; align-items:center; gap:11px; }
+  .modal-ico {
+    width:38px; height:38px; border-radius:10px; flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:0.95rem;
+  }
+  .modal-title { font-family:var(--font-h); font-size:1rem; font-weight:800; color:var(--text); }
+  .modal-sub   { font-family:var(--font-b); font-size:0.72rem; color:var(--muted); margin-top:1px; }
+
+  .modal-close {
+    width:34px; height:34px; border-radius:9px; cursor:pointer;
+    background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09);
+    color:var(--muted); font-size:0.9rem;
+    display:flex; align-items:center; justify-content:center;
+    transition:all 0.2s;
+  }
+  .modal-close:hover { background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.2); color:#f87171; }
+
+  #modalMap { width:100%; height:360px; }
+
+  .modal-footer {
+    padding:14px 22px; border-top:1px solid var(--border);
+    display:flex; align-items:center; gap:10px;
+  }
+  .coords-display {
+    flex:1; font-family:var(--font-b); font-size:0.78rem; color:var(--muted);
+    display:flex; align-items:center; gap:8px;
+  }
+  .coords-display i { color:var(--accent2); }
+  .coords-display strong { color:var(--accent); }
+
+  .btn-close-modal {
+    padding:8px 18px; border-radius:8px; cursor:pointer;
+    background:rgba(238,244,255,0.05); border:1px solid var(--border);
+    color:var(--muted); font-family:var(--font-b); font-size:0.82rem; font-weight:700;
+    transition:all 0.2s;
+  }
+  .btn-close-modal:hover { color:var(--text); background:rgba(238,244,255,0.09); }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  @keyframes livePulse {
+    0%,100% { box-shadow:0 0 0 3px rgba(239,68,68,0.3); }
+    50%      { box-shadow:0 0 0 7px rgba(239,68,68,0.06); }
+  }
+</style>
+
+<!-- Google Maps -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD3MPnSnyWwNmpnVEFkaddVvy_GWtxSejs&sensor=false"></script>
+
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-hdr-ico"><i class="bi bi-sos"></i></div>
+      <div>
+        <div class="page-hdr-title">Emergency Alerts</div>
+        <div class="page-hdr-sub">SOS alerts triggered by residents</div>
+      </div>
+    </div>
+    <div class="count-pill">{{ alerts|length }} Alert{{ alerts|length|pluralize }}</div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <div class="search-wrap">
+      <i class="bi bi-search"></i>
+      <input type="text" id="searchInput" placeholder="Search by resident name or alert type…" onkeyup="filterCards()">
+    </div>
+    <div class="count-pill" id="countPill">{{ alerts|length }} Alert{{ alerts|length|pluralize }}</div>
+  </div>
+
+  <!-- Cards grid -->
+  <div class="cards-grid" id="cardsGrid">
+
+    {% for alert in alerts %}
+    <div class="auth-card" data-search="{{ alert.RESIDENT.name|lower }} {{ alert.alert_type|lower }}">
+
+      <!-- Banner -->
+      <div class="card-banner">
+        <div class="banner-grid"></div>
+        <div class="banner-glow"></div>
+
+        <div class="alert-badge-overlay">
+          <div class="badge-dot"></div> SOS
+        </div>
+
+        <div class="alert-type-pill {{ alert.alert_type }}">
+          {% if alert.alert_type == 'panic' %}
+            <i class="bi bi-exclamation-octagon-fill"></i> Panic Button
+          {% elif alert.alert_type == 'volume' %}
+            <i class="bi bi-volume-up-fill"></i> Volume Button
+          {% else %}
+            <i class="bi bi-phone-vibrate-fill"></i> Shake Detection
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card-body">
+
+        <div class="card-name">{{ alert.RESIDENT.name }}</div>
+        <div class="card-username">House {{ alert.RESIDENT.house_number }}</div>
+
+        <!-- Info rows -->
+        <div class="card-info">
+          <div class="card-info-row">
+            <i class="bi bi-person-fill"></i>
+            <span>{{ alert.RESIDENT.name }}</span>
+          </div>
+          <div class="card-info-row">
+            <i class="bi bi-telephone-fill"></i>
+            <span>{{ alert.RESIDENT.phone }}</span>
+          </div>
+          <div class="card-info-row">
+            <i class="bi bi-bell-fill"></i>
+            <span>
+              {% if alert.alert_type == 'panic' %}Panic Button
+              {% elif alert.alert_type == 'volume' %}Volume Button
+              {% else %}Shake Detection{% endif %}
+            </span>
+          </div>
+          <div class="card-info-row">
+            <i class="bi bi-geo-alt-fill"></i>
+            <span>{{ alert.latitude }}, {{ alert.longitude }}</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="card-footer">
+        <div class="footer-date">
+          <i class="bi bi-calendar-fill"></i>
+          {{ alert.date }}
+        </div>
+        <button class="btn-location"
+          onclick="openMapModal('{{ alert.latitude }}', '{{ alert.longitude }}', '{{ alert.RESIDENT.name|escapejs }}', '{{ alert.alert_type }}')">
+          <i class="bi bi-map-fill"></i> View Location
+        </button>
+      </div>
+
+    </div>
+    {% empty %}
+    <div class="empty-state">
+      <div class="empty-ico"><i class="bi bi-sos"></i></div>
+      <div class="empty-title">No Emergency Alerts</div>
+      <div class="empty-sub">No emergency alerts have been triggered yet.</div>
+    </div>
+    {% endfor %}
+
+  </div>
+</div>
+
+<!-- ── Map Modal ── -->
+<div class="modal-bg" id="mapModal">
+  <div class="modal-box">
+
+    <div class="modal-header">
+      <div class="modal-title-wrap">
+        <div class="modal-ico"><i class="bi bi-geo-alt-fill"></i></div>
+        <div>
+          <div class="modal-title" id="modalTitle">Alert Location</div>
+          <div class="modal-sub" id="modalSub">Emergency triggered by resident</div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeMapModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <div id="modalMap"></div>
+
+    <div class="modal-footer">
+      <div class="coords-display">
+        <i class="bi bi-crosshair"></i>
+        <span>Coordinates: <strong id="coordsText">—</strong></span>
+      </div>
+      <button class="btn-close-modal" onclick="closeMapModal()">Close</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  var modalMapInstance = null;
+
+  function openMapModal(lat, lng, residentName, alertType) {
+    lat = parseFloat(lat);
+    lng = parseFloat(lng);
+    var typeLabel = alertType === 'panic' ? 'Panic Button' : alertType === 'volume' ? 'Volume Button' : 'Shake Detection';
+    document.getElementById('modalTitle').textContent = 'Emergency — ' + typeLabel;
+    document.getElementById('modalSub').textContent   = 'Triggered by ' + residentName;
+    document.getElementById('coordsText').textContent = lat.toFixed(6) + ', ' + lng.toFixed(6);
+    document.getElementById('mapModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+
+    setTimeout(function() {
+      var pos = new google.maps.LatLng(lat, lng);
+      if (modalMapInstance) {
+        modalMapInstance = null;
+        document.getElementById('modalMap').innerHTML = '';
+      }
+      modalMapInstance = new google.maps.Map(document.getElementById('modalMap'), {
+        center: pos, zoom: 16, mapTypeId: google.maps.MapTypeId.ROADMAP
+      });
+      new google.maps.Marker({
+        position: pos, map: modalMapInstance,
+        title: 'Emergency Alert — ' + residentName,
+        animation: google.maps.Animation.DROP
+      });
+    }, 100);
+  }
+
+  function closeMapModal() {
+    document.getElementById('mapModal').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('mapModal').addEventListener('click', function(e) {
+    if (e.target === this) closeMapModal();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeMapModal();
+  });
+
+  function filterCards() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const cards = document.querySelectorAll('.auth-card');
+    let visible = 0;
+    cards.forEach(card => {
+      const show = (card.dataset.search || '').includes(q);
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    document.getElementById('countPill').textContent = visible + ' Alert' + (visible !== 1 ? 's' : '');
+  }
+</script>
+{% endblock %}

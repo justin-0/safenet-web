@@ -1,0 +1,428 @@
+{% include 'authority_header.html' %}
+
+<style>
+  @keyframes fadeUp    { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes livePulse { 0%,100% { box-shadow:0 0 0 3px rgba(0,200,150,.3); } 50% { box-shadow:0 0 0 7px rgba(0,200,150,.06); } }
+  @keyframes scanLine  { 0% { top:0; opacity:.5; } 100% { top:100%; opacity:0; } }
+
+  .cam-page { padding: 110px 64px 80px; max-width: 1200px; margin: 0 auto; }
+
+  /* ── Top bar ── */
+  .cam-topbar {
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:14px; margin-bottom:24px;
+    animation: fadeUp .5s ease both;
+  }
+  .cam-topbar-left { display:flex; align-items:center; gap:13px; }
+  .cam-tb-ico {
+    width:46px; height:46px; border-radius:13px; flex-shrink:0;
+    background:linear-gradient(135deg,#00a87e,#00c896);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1.15rem;
+    box-shadow:0 0 22px rgba(0,200,150,.35);
+  }
+  .cam-tb-title { font-family:var(--font-h); font-size:1.35rem; font-weight:800; color:var(--white); letter-spacing:-.4px; }
+  .cam-tb-sub   { font-family:var(--font-b); font-size:.8rem; color:var(--muted); margin-top:2px; }
+  .cam-count-badge {
+    display:inline-flex; align-items:center; gap:7px;
+    padding:8px 18px; border-radius:100px;
+    background:rgba(0,200,150,.08); border:1px solid rgba(0,200,150,.22);
+    font-family:var(--font-b); font-size:.8rem; font-weight:700;
+    color:var(--green); letter-spacing:.05em;
+  }
+
+  /* ── Filter bar ── */
+  .filter-bar {
+    display:flex; align-items:center; gap:12px; margin-bottom:24px;
+    animation:fadeUp .5s .06s ease both; flex-wrap:wrap;
+  }
+  .search-wrap { position:relative; flex:1; min-width:220px; }
+  .search-wrap i {
+    position:absolute; left:13px; top:50%; transform:translateY(-50%);
+    color:var(--muted); font-size:.95rem; pointer-events:none;
+  }
+  .search-wrap input {
+    width:100%; background:rgba(5,14,10,.75); border:1px solid rgba(0,200,150,.12);
+    border-radius:11px; padding:10px 14px 10px 40px;
+    color:var(--white); font-family:var(--font-b); font-size:.85rem;
+    outline:none; transition:border-color .2s;
+  }
+  .search-wrap input:focus { border-color:rgba(0,200,150,.35); }
+  .search-wrap input::placeholder { color:var(--muted); }
+  .count-pill {
+    font-family:var(--font-b); font-size:.75rem; font-weight:700;
+    padding:6px 14px; border-radius:20px;
+    background:rgba(0,200,150,.08); border:1px solid rgba(0,200,150,.18);
+    color:var(--green); white-space:nowrap;
+  }
+
+  /* ── Grid ── */
+  .cam-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
+    gap:20px;
+    animation:fadeUp .5s .12s ease both;
+  }
+
+  /* ── Card ── */
+  .cam-card {
+    background:rgba(5,14,10,.75); border:1px solid rgba(0,200,150,.12);
+    border-radius:24px; overflow:hidden; position:relative;
+    transition:transform .22s, box-shadow .22s, border-color .22s;
+  }
+  .cam-card:hover {
+    transform:translateY(-5px);
+    box-shadow:0 18px 48px rgba(0,0,0,.45);
+    border-color:rgba(0,200,150,.22);
+  }
+  .cam-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,#00a87e,#00c896,#00f0b0);
+    opacity:0; transition:opacity .22s;
+  }
+  .cam-card:hover::before { opacity:1; }
+
+  /* Card Top Banner */
+  .cam-banner {
+    height:120px; overflow:hidden; position:relative;
+    background:linear-gradient(135deg,rgba(0,168,126,.15),rgba(0,200,150,.06));
+    border-bottom:1px solid rgba(0,200,150,.1);
+  }
+  .cam-banner-grid {
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(0,200,150,.04) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(0,200,150,.04) 1px,transparent 1px);
+    background-size:20px 20px;
+  }
+  .cam-banner-glow {
+    position:absolute; top:-60px; right:-60px;
+    width:200px; height:200px; border-radius:50%;
+    background:radial-gradient(circle,rgba(0,200,150,.12) 0%,transparent 65%);
+    pointer-events:none;
+  }
+  .cam-banner-scan {
+    position:absolute; left:0; right:0; height:1px;
+    background:linear-gradient(90deg,transparent,rgba(0,200,150,.5),transparent);
+    animation:scanLine 3s linear infinite;
+  }
+  .cam-banner-ico {
+    position:absolute; bottom:14px; left:20px;
+    width:44px; height:44px; border-radius:12px;
+    background:rgba(0,200,150,.12); border:1px solid rgba(0,200,150,.25);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--green); font-size:1.1rem;
+    backdrop-filter:blur(6px);
+    box-shadow:0 0 18px rgba(0,200,150,.15);
+  }
+  .cam-badge-overlay {
+    position:absolute; top:10px; right:10px;
+    display:inline-flex; align-items:center; gap:5px;
+    font-family:var(--font-b); font-size:.62rem; font-weight:700;
+    letter-spacing:.1em; text-transform:uppercase;
+    color:var(--green); background:rgba(0,200,150,.12);
+    border:1px solid rgba(0,200,150,.28); border-radius:20px;
+    padding:4px 10px; backdrop-filter:blur(6px);
+  }
+  .badge-dot { width:5px; height:5px; border-radius:50%; background:currentColor; animation:livePulse 2s infinite; }
+
+  /* Body */
+  .cam-body { padding:18px 20px 16px; }
+  .cam-name {
+    font-family:var(--font-h); font-size:1rem; font-weight:800;
+    color:var(--white); letter-spacing:-.2px; margin-bottom:2px;
+  }
+  .cam-id-sub {
+    font-family:var(--font-b); font-size:.72rem; color:var(--green);
+    font-weight:600; margin-bottom:14px;
+  }
+
+  /* Info rows */
+  .cam-info-list { display:flex; flex-direction:column; gap:8px; }
+  .cam-info-row {
+    display:flex; align-items:center; gap:11px;
+    padding:10px 13px; border-radius:11px;
+    background:rgba(0,200,150,.04); border:1px solid rgba(0,200,150,.08);
+    transition:background .2s, border-color .2s;
+  }
+  .cam-info-row:hover { background:rgba(0,200,150,.08); border-color:rgba(0,200,150,.16); }
+  .cam-info-ico {
+    width:32px; height:32px; border-radius:9px; flex-shrink:0;
+    background:linear-gradient(135deg,rgba(0,168,126,.22),rgba(0,200,150,.12));
+    color:var(--green); display:flex; align-items:center; justify-content:center; font-size:.8rem;
+  }
+  .cam-info-tag { font-family:var(--font-b); font-size:.58rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:2px; }
+  .cam-info-val { font-family:var(--font-b); font-size:.82rem; font-weight:600; color:var(--white); word-break:break-all; }
+
+  /* Footer */
+  .cam-footer {
+    border-top:1px solid rgba(0,200,150,.08); padding:13px 20px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .cam-id-pill {
+    font-family:var(--font-b); font-size:.7rem; color:var(--muted);
+    display:flex; align-items:center; gap:6px;
+  }
+  .cam-id-pill i { color:var(--green); }
+
+  .btn-detect {
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:var(--font-b); font-size:.75rem; font-weight:700;
+    color:#fff; padding:8px 14px; border-radius:10px;
+    background:linear-gradient(135deg,#00a87e,#00c896);
+    border:none;
+    box-shadow:0 2px 12px rgba(0,200,150,.3);
+    transition:all .2s; cursor:pointer; white-space:nowrap; text-decoration:none;
+  }
+  .btn-detect:hover { box-shadow:0 4px 20px rgba(0,200,150,.5); transform:translateY(-1px); color:#fff; }
+
+  .btn-location {
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:var(--font-b); font-size:.75rem; font-weight:700;
+    color:var(--green); padding:8px 14px; border-radius:10px;
+    background:rgba(0,200,150,.07); border:1px solid rgba(0,200,150,.18);
+    transition:all .2s; cursor:pointer; white-space:nowrap;
+  }
+  .btn-location:hover { background:rgba(0,200,150,.14); transform:translateY(-1px); }
+
+  /* Empty */
+  .empty-state { text-align:center; padding:80px 20px; grid-column:1/-1; }
+  .empty-ico {
+    width:72px; height:72px; border-radius:20px; margin:0 auto 16px;
+    background:rgba(0,200,150,.08); border:1px solid rgba(0,200,150,.18);
+    display:flex; align-items:center; justify-content:center; color:var(--green); font-size:2rem;
+  }
+  .empty-title { font-family:var(--font-h); font-size:1.1rem; font-weight:800; color:var(--white); margin-bottom:6px; }
+  .empty-sub   { font-family:var(--font-b); font-size:.85rem; color:var(--muted); }
+
+  /* ── Map Modal ── */
+  .modal-bg {
+    display:none; position:fixed; inset:0;
+    background:rgba(2,13,10,.88); backdrop-filter:blur(8px);
+    z-index:9999; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-bg.show { display:flex; }
+  .modal-box {
+    background:rgba(5,14,10,.97); border:1px solid rgba(0,200,150,.2);
+    border-radius:24px; width:100%; max-width:680px; overflow:hidden; position:relative;
+    animation:fadeUp .25s ease both;
+    box-shadow:0 32px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(0,200,150,.1);
+  }
+  .modal-box::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,#00a87e,#00c896,#00f0b0);
+    border-radius:24px 24px 0 0;
+  }
+  .modal-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 24px 14px; border-bottom:1px solid rgba(0,200,150,.08);
+  }
+  .modal-title-wrap { display:flex; align-items:center; gap:12px; }
+  .modal-ico {
+    width:38px; height:38px; border-radius:10px; flex-shrink:0;
+    background:linear-gradient(135deg,#00a87e,#00c896);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:.95rem; box-shadow:0 0 16px rgba(0,200,150,.28);
+  }
+  .modal-title { font-family:var(--font-h); font-size:1rem; font-weight:800; color:var(--white); }
+  .modal-sub   { font-family:var(--font-b); font-size:.72rem; color:var(--muted); margin-top:1px; }
+  .modal-close {
+    width:34px; height:34px; border-radius:9px; cursor:pointer;
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09);
+    color:var(--muted); font-size:.9rem;
+    display:flex; align-items:center; justify-content:center; transition:all .2s;
+  }
+  .modal-close:hover { background:rgba(239,68,68,.1); border-color:rgba(239,68,68,.2); color:#f87171; }
+  #modalMap { width:100%; height:360px; }
+  .modal-footer {
+    padding:14px 24px; border-top:1px solid rgba(0,200,150,.08);
+    display:flex; align-items:center; gap:10px;
+  }
+  .coords-display {
+    flex:1; font-family:var(--font-b); font-size:.78rem; color:var(--muted);
+    display:flex; align-items:center; gap:8px;
+  }
+  .coords-display i { color:var(--green); }
+  .coords-display strong { color:var(--green); }
+  .btn-close-modal {
+    padding:8px 18px; border-radius:9px; cursor:pointer;
+    background:rgba(255,255,255,.04); border:1px solid rgba(0,200,150,.12);
+    color:var(--muted); font-family:var(--font-b); font-size:.82rem; font-weight:700;
+    transition:all .2s;
+  }
+  .btn-close-modal:hover { color:var(--white); background:rgba(255,255,255,.08); }
+
+  @media(max-width:768px){ .cam-page { padding:100px 20px 60px; } }
+</style>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD3MPnSnyWwNmpnVEFkaddVvy_GWtxSejs&sensor=false"></script>
+
+<div class="cam-page">
+
+  <!-- Top bar -->
+  <div class="cam-topbar">
+    <div class="cam-topbar-left">
+      <div class="cam-tb-ico"><i class="bi bi-camera-video-fill"></i></div>
+      <div>
+        <div class="cam-tb-title">Surveillance Cameras</div>
+        <div class="cam-tb-sub">Manage and monitor all registered cameras</div>
+      </div>
+    </div>
+    <div class="cam-count-badge">
+      <i class="bi bi-camera-video-fill"></i>
+      {{ cameras|length }} Camera{{ cameras|length|pluralize }}
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <div class="search-wrap">
+      <i class="bi bi-search"></i>
+      <input type="text" id="searchInput" placeholder="Search by camera name…" onkeyup="filterCards()">
+    </div>
+    <div class="count-pill" id="countPill">{{ cameras|length }} Camera{{ cameras|length|pluralize }}</div>
+  </div>
+
+  <!-- Grid -->
+  <div class="cam-grid" id="cardsGrid">
+
+    {% for camera in cameras %}
+    <div class="cam-card" data-search="{{ camera.camera_name|lower }}">
+
+      <!-- Banner -->
+      <div class="cam-banner">
+        <div class="cam-banner-grid"></div>
+        <div class="cam-banner-glow"></div>
+        <div class="cam-banner-scan"></div>
+        <div class="cam-banner-ico"><i class="bi bi-camera-video-fill"></i></div>
+        <div class="cam-badge-overlay">
+          <div class="badge-dot"></div> Active
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="cam-body">
+        <div class="cam-name">{{ camera.camera_name }}</div>
+        <div class="cam-id-sub">Camera ID &nbsp;#{{ camera.id }}</div>
+
+        <div class="cam-info-list">
+          <div class="cam-info-row">
+            <div class="cam-info-ico"><i class="bi bi-camera-video-fill"></i></div>
+            <div>
+              <div class="cam-info-tag">Camera Name</div>
+              <div class="cam-info-val">{{ camera.camera_name }}</div>
+            </div>
+          </div>
+          <div class="cam-info-row">
+            <div class="cam-info-ico"><i class="bi bi-geo-alt-fill"></i></div>
+            <div>
+              <div class="cam-info-tag">Coordinates</div>
+              <div class="cam-info-val">{{ camera.latitude }}, {{ camera.longitude }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="cam-footer">
+        <div class="cam-id-pill">
+          <i class="bi bi-hash"></i>
+          ID {{ camera.id }}
+        </div>
+        <div style="display:flex;gap:8px;">
+          <a href="{% url 'authority_view_unauthorized_entries' camera.id %}" class="btn-detect">
+            <i class="bi bi-camera-video-fill"></i> Detect
+          </a>
+          <button class="btn-location"
+            onclick="openMapModal('{{ camera.latitude }}','{{ camera.longitude }}','{{ camera.camera_name|escapejs }}')">
+            <i class="bi bi-map-fill"></i> Location
+          </button>
+        </div>
+      </div>
+
+    </div>
+    {% empty %}
+    <div class="empty-state">
+      <div class="empty-ico"><i class="bi bi-camera-video-off"></i></div>
+      <div class="empty-title">No Cameras Found</div>
+      <div class="empty-sub">No surveillance cameras have been registered yet.</div>
+    </div>
+    {% endfor %}
+
+  </div>
+</div>
+
+<!-- Map Modal -->
+<div class="modal-bg" id="mapModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title-wrap">
+        <div class="modal-ico"><i class="bi bi-geo-alt-fill"></i></div>
+        <div>
+          <div class="modal-title" id="modalTitle">Camera Location</div>
+          <div class="modal-sub" id="modalSub">Surveillance camera position</div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeMapModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div id="modalMap"></div>
+    <div class="modal-footer">
+      <div class="coords-display">
+        <i class="bi bi-crosshair"></i>
+        <span>Coordinates: <strong id="coordsText">—</strong></span>
+      </div>
+      <button class="btn-close-modal" onclick="closeMapModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  var modalMapInstance = null;
+
+  function openMapModal(lat, lng, cameraName) {
+    lat = parseFloat(lat); lng = parseFloat(lng);
+    document.getElementById('modalTitle').textContent = cameraName;
+    document.getElementById('modalSub').textContent   = 'Surveillance camera position';
+    document.getElementById('coordsText').textContent = lat.toFixed(6) + ', ' + lng.toFixed(6);
+    document.getElementById('mapModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function() {
+      var pos = new google.maps.LatLng(lat, lng);
+      if (modalMapInstance) { modalMapInstance = null; document.getElementById('modalMap').innerHTML = ''; }
+      modalMapInstance = new google.maps.Map(document.getElementById('modalMap'), {
+        center: pos, zoom: 17, mapTypeId: google.maps.MapTypeId.ROADMAP
+      });
+      new google.maps.Marker({ position: pos, map: modalMapInstance,
+        title: cameraName, animation: google.maps.Animation.DROP });
+    }, 100);
+  }
+
+  function closeMapModal() {
+    document.getElementById('mapModal').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('mapModal').addEventListener('click', function(e) {
+    if (e.target === this) closeMapModal();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeMapModal();
+  });
+
+  function filterCards() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const cards = document.querySelectorAll('.cam-card');
+    let visible = 0;
+    cards.forEach(card => {
+      const show = (card.dataset.search || '').includes(q);
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    document.getElementById('countPill').textContent =
+      visible + ' Camera' + (visible !== 1 ? 's' : '');
+  }
+</script>
+
+{% include 'authority_footer.html' %}
+</body>
+</html>

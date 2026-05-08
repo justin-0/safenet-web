@@ -1,0 +1,404 @@
+{% include 'authority_header.html' %}
+
+<style>
+  @keyframes fadeUp    { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes livePulse { 0%,100% { box-shadow:0 0 0 3px rgba(0,200,150,.3); } 50% { box-shadow:0 0 0 7px rgba(0,200,150,.06); } }
+  @keyframes scanLine  { 0% { top:0; opacity:.6; } 100% { top:100%; opacity:0; } }
+  @keyframes glowPulse { 0%,100% { box-shadow:0 0 30px rgba(0,200,150,.1); } 50% { box-shadow:0 0 60px rgba(0,200,150,.25); } }
+
+  .det-page { padding: 110px 64px 80px; max-width: 1200px; margin: 0 auto; }
+
+  /* ── Top bar ── */
+  .det-topbar {
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:14px; margin-bottom:28px;
+    animation: fadeUp .5s ease both;
+  }
+  .det-topbar-left { display:flex; align-items:center; gap:13px; }
+  .det-tb-ico {
+    width:46px; height:46px; border-radius:13px; flex-shrink:0;
+    background:linear-gradient(135deg,#00a87e,#00c896);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1.15rem;
+    box-shadow:0 0 22px rgba(0,200,150,.35);
+  }
+  .det-tb-title { font-family:var(--font-h); font-size:1.35rem; font-weight:800; color:var(--white); letter-spacing:-.4px; }
+  .det-tb-sub   { font-family:var(--font-b); font-size:.8rem; color:var(--muted); margin-top:2px; }
+
+  /* Camera status pill */
+  .camera-status {
+    display:flex; align-items:center; gap:6px;
+    font-family:var(--font-b); font-size:.72rem; font-weight:700;
+    color:var(--muted); letter-spacing:.08em; text-transform:uppercase;
+    padding:7px 15px; border-radius:20px;
+    background:rgba(0,200,150,.05); border:1px solid rgba(0,200,150,.12);
+    transition:all .3s;
+  }
+  .camera-status.live {
+    color:var(--green); background:rgba(0,200,150,.1); border-color:rgba(0,200,150,.28);
+    animation:glowPulse 3s ease-in-out infinite;
+  }
+  .camera-status-dot {
+    width:7px; height:7px; border-radius:50%; background:rgba(0,200,150,.25);
+    transition:all .3s;
+  }
+  .camera-status.live .camera-status-dot { background:var(--green); animation:livePulse 2s infinite; }
+
+  /* ── Camera Card ── */
+  .camera-card {
+    background:rgba(5,14,10,.75); border:1px solid rgba(0,200,150,.12);
+    border-radius:24px; overflow:hidden; position:relative;
+    margin-bottom:28px;
+    animation: fadeUp .5s .08s ease both;
+    box-shadow:0 0 0 1px rgba(0,200,150,.05);
+  }
+  .camera-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,#00a87e,#00c896,#00f0b0);
+  }
+
+  .camera-card-header {
+    padding:18px 24px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid rgba(0,200,150,.08);
+    flex-wrap:wrap; gap:12px;
+  }
+  .camera-card-title {
+    font-family:var(--font-h); font-size:1rem; font-weight:700; color:var(--white);
+    display:flex; align-items:center; gap:10px;
+  }
+  .camera-card-title i { color:var(--green); }
+
+  .cam-info-pill {
+    display:flex; align-items:center; gap:7px;
+    font-family:var(--font-b); font-size:.75rem; color:var(--muted);
+    padding:5px 12px; border-radius:20px;
+    background:rgba(0,200,150,.05); border:1px solid rgba(0,200,150,.1);
+  }
+  .cam-info-pill i { color:var(--green); }
+  .cam-info-pill strong { color:var(--white); font-weight:700; }
+
+  .cam-btns { display:flex; gap:10px; flex-wrap:wrap; }
+
+  .btn-start {
+    padding:10px 22px; border-radius:11px; cursor:pointer; border:none;
+    background:linear-gradient(135deg,#00a87e,#00c896);
+    color:#fff; font-family:var(--font-b); font-size:.83rem; font-weight:700;
+    box-shadow:0 4px 18px rgba(0,200,150,.3);
+    display:flex; align-items:center; gap:7px;
+    transition:all .2s;
+  }
+  .btn-start:hover { box-shadow:0 6px 28px rgba(0,200,150,.5); transform:translateY(-1px); }
+
+  .btn-stop {
+    padding:10px 22px; border-radius:11px; cursor:pointer;
+    background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.25);
+    color:#f87171; font-family:var(--font-b); font-size:.83rem; font-weight:700;
+    display:flex; align-items:center; gap:7px;
+    transition:all .2s;
+  }
+  .btn-stop:hover { background:rgba(239,68,68,.18); border-color:rgba(239,68,68,.4); }
+
+  .camera-feed-wrap {
+    padding:28px;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(2,13,10,.6);
+    min-height:200px; position:relative;
+  }
+  .camera-placeholder {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:12px; color:var(--muted);
+    font-family:var(--font-b); font-size:.85rem;
+  }
+  .camera-placeholder i { font-size:2.8rem; color:rgba(0,200,150,.2); }
+  .camera-placeholder span { color:var(--muted); }
+  #camera {
+    width:100%; max-width:720px; border-radius:14px;
+    border:1px solid rgba(0,200,150,.2);
+    display:none;
+    box-shadow:0 0 40px rgba(0,200,150,.1);
+  }
+
+  /* ── Section label ── */
+  .section-label {
+    font-family:var(--font-b); font-size:.62rem; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase;
+    color:var(--green); margin-bottom:16px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .section-label::after { content:''; flex:1; height:1px; background:rgba(0,200,150,.1); }
+  .entries-count {
+    font-family:var(--font-b); font-size:.72rem; font-weight:700;
+    color:var(--green); background:rgba(0,200,150,.1);
+    border:1px solid rgba(0,200,150,.2); border-radius:20px;
+    padding:2px 10px; margin-left:8px;
+  }
+
+  /* ── Entries Grid ── */
+  .entries-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+    gap:16px;
+  }
+
+  /* ── Folder Card ── */
+  .folder-card {
+    background:rgba(5,14,10,.75); border:1px solid rgba(0,200,150,.1);
+    border-radius:18px; overflow:hidden; cursor:pointer;
+    transition:border-color .2s, transform .2s, box-shadow .2s;
+    animation: fadeUp .5s ease both;
+    position:relative;
+  }
+  .folder-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,#00a87e,#00c896,#00f0b0);
+    opacity:0; transition:opacity .22s;
+  }
+  .folder-card:hover { border-color:rgba(0,200,150,.22); transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,.4); }
+  .folder-card:hover::before { opacity:1; }
+  .folder-card.open { border-color:rgba(0,200,150,.28); box-shadow:0 0 0 1px rgba(0,200,150,.08), 0 8px 32px rgba(0,0,0,.35); }
+  .folder-card.open::before { opacity:1; }
+
+  .folder-header {
+    padding:16px 18px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .folder-ico {
+    width:40px; height:40px; border-radius:10px; flex-shrink:0;
+    background:rgba(0,200,150,.08); border:1px solid rgba(0,200,150,.15);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.1rem; transition:all .2s;
+  }
+  .folder-ico::after { content:'📁'; }
+  .folder-card.open .folder-ico { background:rgba(0,200,150,.14); border-color:rgba(0,200,150,.3); }
+  .folder-card.open .folder-ico::after { content:'📂'; }
+
+  .folder-meta { flex:1; min-width:0; }
+  .folder-name {
+    font-family:var(--font-h); font-size:.92rem; font-weight:700;
+    color:var(--white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .folder-time {
+    font-family:var(--font-b); font-size:.72rem; color:var(--muted);
+    margin-top:2px; display:flex; align-items:center; gap:5px;
+  }
+  .folder-time i { color:var(--green); font-size:.65rem; }
+
+  .folder-chevron {
+    color:var(--muted); font-size:.85rem;
+    transition:transform .3s, color .2s; flex-shrink:0;
+  }
+  .folder-card.open .folder-chevron { transform:rotate(180deg); color:var(--green); }
+
+  /* ── Image Panel ── */
+  .folder-images {
+    display:none; padding:0 18px 18px;
+    border-top:1px solid rgba(0,200,150,.08);
+    animation: fadeUp .3s ease both;
+  }
+  .folder-images.open { display:block; }
+
+  .images-label {
+    font-family:var(--font-b); font-size:.62rem; font-weight:700;
+    letter-spacing:.1em; text-transform:uppercase;
+    color:var(--muted); padding:12px 0 10px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .images-label i { color:var(--green); }
+
+  .images-grid { display:flex; flex-wrap:wrap; gap:10px; }
+  .images-grid img {
+    width:100px; height:80px; object-fit:cover;
+    border-radius:10px; border:1px solid rgba(0,200,150,.1);
+    transition:transform .2s, border-color .2s, box-shadow .2s;
+    cursor:zoom-in;
+  }
+  .images-grid img:hover {
+    transform:scale(1.06);
+    border-color:rgba(0,200,150,.3);
+    box-shadow:0 4px 16px rgba(0,200,150,.15);
+  }
+
+  /* ── Empty State ── */
+  .empty-state {
+    grid-column:1/-1;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:12px; padding:48px;
+    background:rgba(5,14,10,.75); border:1px dashed rgba(0,200,150,.12);
+    border-radius:18px; color:var(--muted);
+  }
+  .empty-state i { font-size:2.5rem; color:rgba(0,200,150,.2); }
+  .empty-state p { font-family:var(--font-b); font-size:.85rem; }
+
+  /* ── Lightbox ── */
+  .lightbox {
+    display:none; position:fixed; inset:0; z-index:10000;
+    background:rgba(2,13,10,.95); backdrop-filter:blur(14px);
+    align-items:center; justify-content:center;
+  }
+  .lightbox.on { display:flex; }
+  .lightbox img { max-width:90vw; max-height:90vh; border-radius:14px; border:1px solid rgba(0,200,150,.2); box-shadow:0 0 60px rgba(0,200,150,.1); }
+  .lightbox-close {
+    position:absolute; top:22px; right:26px;
+    color:var(--muted); font-size:1.5rem; cursor:pointer;
+    width:40px; height:40px; border-radius:10px;
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09);
+    display:flex; align-items:center; justify-content:center;
+    transition:all .2s;
+  }
+  .lightbox-close:hover { color:var(--white); background:rgba(239,68,68,.1); border-color:rgba(239,68,68,.2); }
+
+  @media(max-width:768px){ .det-page { padding:100px 20px 60px; } }
+</style>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <div class="lightbox-close"><i class="bi bi-x-lg"></i></div>
+  <img id="lightbox-img" src="" alt="Captured Face">
+</div>
+
+<div class="det-page">
+
+  <!-- Top bar -->
+  <div class="det-topbar">
+    <div class="det-topbar-left">
+      <div class="det-tb-ico"><i class="bi bi-camera-fill"></i></div>
+      <div>
+        <div class="det-tb-title">Unauthorized Detection</div>
+        <div class="det-tb-sub">Live face recognition — {{ camera.camera_name }}</div>
+      </div>
+    </div>
+    <div class="camera-status" id="cameraStatus">
+      <div class="camera-status-dot"></div>
+      <span id="cameraStatusText">Camera Offline</span>
+    </div>
+  </div>
+
+  <!-- Camera Card -->
+  <div class="camera-card">
+    <div class="camera-card-header">
+      <div class="camera-card-title">
+        <i class="bi bi-camera-video-fill"></i>
+        Live Camera Feed
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <div class="cam-info-pill">
+          <i class="bi bi-geo-alt-fill"></i>
+          <strong>{{ camera.camera_name }}</strong>&nbsp;&nbsp;
+          <span>{{ camera.latitude }}, {{ camera.longitude }}</span>
+        </div>
+      </div>
+      <div class="cam-btns">
+        <button class="btn-start" onclick="startCamera()">
+          <i class="bi bi-play-fill"></i> Start Camera
+        </button>
+        <button class="btn-stop" onclick="stopCamera()">
+          <i class="bi bi-stop-fill"></i> Stop Camera
+        </button>
+      </div>
+    </div>
+    <div class="camera-feed-wrap">
+      <div class="camera-placeholder" id="cameraPlaceholder">
+        <i class="bi bi-camera-video-off"></i>
+        <span>Camera feed inactive — press Start to begin</span>
+      </div>
+      <img src="" id="camera" alt="Live Feed">
+    </div>
+  </div>
+
+  <!-- Entries section -->
+  <div class="section-label">
+    <i class="bi bi-folder-fill"></i>
+    Unauthorized Entry Logs
+    <span class="entries-count">{{ entries|length }}</span>
+  </div>
+
+  <div class="entries-grid">
+
+    {% if entries %}
+      {% for item in entries %}
+      <div class="folder-card" id="card{{ item.entry.id }}"
+           onclick="toggleFolder('f{{ item.entry.id }}', 'card{{ item.entry.id }}')"
+           style="animation-delay:{{ forloop.counter0 }}00ms;">
+        <div class="folder-header">
+          <div class="folder-ico"></div>
+          <div class="folder-meta">
+            <div class="folder-name">Detection {{ forloop.counter }}</div>
+            <div class="folder-time">
+              <i class="bi bi-clock-fill"></i>
+              {{ item.entry.detected_time }}
+            </div>
+          </div>
+          <i class="bi bi-chevron-down folder-chevron" id="chev{{ item.entry.id }}"></i>
+        </div>
+        <div class="folder-images" id="f{{ item.entry.id }}">
+          <div class="images-label"><i class="bi bi-images"></i> Captured Frames</div>
+          <div class="images-grid">
+            {% for img in item.images %}
+            <img src="{{ img }}" onclick="openLightbox(event,'{{ img }}')" alt="Frame {{ forloop.counter }}">
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <i class="bi bi-shield-check"></i>
+        <p>No unauthorized entries detected yet</p>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<script>
+  // ── Camera ──
+  function startCamera() {
+    const img         = document.getElementById('camera');
+    const placeholder = document.getElementById('cameraPlaceholder');
+    const status      = document.getElementById('cameraStatus');
+    const statusText  = document.getElementById('cameraStatusText');
+    img.src = "?action=start";
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+    status.classList.add('live');
+    statusText.textContent = 'Camera Live';
+  }
+
+  function stopCamera() {
+    const img         = document.getElementById('camera');
+    const placeholder = document.getElementById('cameraPlaceholder');
+    const status      = document.getElementById('cameraStatus');
+    const statusText  = document.getElementById('cameraStatusText');
+    img.src = '';
+    img.style.display = 'none';
+    placeholder.style.display = 'flex';
+    status.classList.remove('live');
+    statusText.textContent = 'Camera Offline';
+    fetch('?action=stop').then(() => location.reload());
+  }
+
+  // ── Folder Toggle ──
+  function toggleFolder(id, cardId) {
+    const panel  = document.getElementById(id);
+    const card   = document.getElementById(cardId);
+    const isOpen = panel.classList.contains('open');
+    panel.classList.toggle('open', !isOpen);
+    card.classList.toggle('open', !isOpen);
+  }
+
+  // ── Lightbox ──
+  function openLightbox(e, src) {
+    e.stopPropagation();
+    document.getElementById('lightbox-img').src = src;
+    document.getElementById('lightbox').classList.add('on');
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('on');
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+</script>
+
+{% include 'authority_footer.html' %}
+</body>
+</html>

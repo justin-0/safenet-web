@@ -1,0 +1,225 @@
+{% extends 'admin_sidebar.html' %}
+{% block page_title %}Edit Camera{% endblock %}
+
+{% block content %}
+<style>
+  .page-wrap { padding: 32px 36px; }
+
+  .page-hdr {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:28px; flex-wrap:wrap; gap:14px;
+    animation: fadeUp 0.5s ease both;
+  }
+  .page-hdr-left { display:flex; align-items:center; gap:14px; }
+  .page-hdr-ico {
+    width:48px; height:48px; border-radius:13px; flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1.2rem;
+    box-shadow:0 0 20px rgba(0,212,255,0.25);
+  }
+  .page-hdr-title { font-family:var(--font-h); font-size:1.45rem; font-weight:800; color:var(--text); letter-spacing:-0.4px; }
+  .page-hdr-sub   { font-family:var(--font-b); font-size:0.82rem; color:var(--muted); margin-top:2px; }
+
+  .btn-back {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:10px 20px; border-radius:10px;
+    background:rgba(0,212,255,0.07); border:1px solid rgba(0,212,255,0.15);
+    color:var(--accent); font-family:var(--font-b); font-size:0.85rem; font-weight:700;
+    text-decoration:none; transition:all 0.2s;
+  }
+  .btn-back:hover { background:rgba(0,212,255,0.14); color:var(--accent); transform:translateY(-1px); }
+
+  /* ── Form card centered ── */
+  .form-wrap {
+    max-width:560px; margin:0 auto;
+    animation: fadeUp 0.5s 0.08s ease both;
+  }
+
+  .form-card {
+    background:var(--bg-card); border:1px solid var(--border);
+    border-radius:16px; overflow:hidden; position:relative;
+  }
+  .form-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,var(--accent2),var(--accent),var(--accent3));
+  }
+  .form-card-header {
+    padding:20px 24px 16px;
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:12px;
+  }
+  .form-card-ico {
+    width:38px; height:38px; border-radius:10px; flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:0.95rem;
+  }
+  .form-card-title { font-family:var(--font-h); font-size:1rem; font-weight:800; color:var(--text); }
+  .form-card-sub   { font-family:var(--font-b); font-size:0.72rem; color:var(--muted); margin-top:1px; }
+  .form-card-body  { padding:22px 24px 26px; }
+
+  .field-group { margin-bottom:18px; }
+  .field-label {
+    font-family:var(--font-b); font-size:0.68rem; font-weight:700;
+    letter-spacing:0.1em; text-transform:uppercase; color:var(--muted);
+    margin-bottom:7px; display:block;
+  }
+  .field-input {
+    width:100%; box-sizing:border-box;
+    background:rgba(238,244,255,0.04); border:1px solid var(--border);
+    border-radius:10px; padding:10px 14px;
+    color:var(--text); font-family:var(--font-b); font-size:0.85rem;
+    outline:none; transition:border-color 0.2s, box-shadow 0.2s;
+  }
+  .field-input:focus { border-color:rgba(0,212,255,0.4); box-shadow:0 0 0 3px rgba(0,212,255,0.07); }
+  .field-input::placeholder { color:var(--muted); }
+  .field-input[readonly] {
+    background:rgba(0,212,255,0.04); border-color:rgba(0,212,255,0.15);
+    color:var(--accent); cursor:default;
+  }
+
+  .map-label {
+    font-family:var(--font-b); font-size:0.68rem; font-weight:700;
+    letter-spacing:0.1em; text-transform:uppercase; color:var(--muted);
+    margin-bottom:7px; display:flex; align-items:center; gap:6px;
+  }
+  .map-label span { color:var(--accent); font-size:0.65rem; font-weight:600; text-transform:none; letter-spacing:0; }
+
+  #dvMap {
+    width:100%; height:260px; border-radius:10px; overflow:hidden;
+    border:1px solid var(--border); margin-bottom:12px;
+  }
+  .lat-lng-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+
+  .btn-submit {
+    width:100%; padding:12px; border-radius:10px; border:none; cursor:pointer;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    color:#fff; font-family:var(--font-b); font-size:0.9rem; font-weight:700;
+    box-shadow:0 4px 16px rgba(0,87,255,0.28);
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:all 0.2s;
+  }
+  .btn-submit:hover { transform:translateY(-2px); box-shadow:0 6px 22px rgba(0,87,255,0.4); }
+
+  /* Current coords info bar */
+  .coords-bar {
+    display:flex; align-items:center; gap:10px;
+    background:rgba(0,212,255,0.05); border:1px solid rgba(0,212,255,0.14);
+    border-radius:10px; padding:10px 14px; margin-bottom:16px;
+    font-family:var(--font-b); font-size:0.78rem; color:var(--muted);
+  }
+  .coords-bar i { color:var(--accent); }
+  .coords-bar strong { color:var(--accent); }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+</style>
+
+<!-- Google Maps -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD3MPnSnyWwNmpnVEFkaddVvy_GWtxSejs&sensor=false"></script>
+
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-hdr-ico"><i class="bi bi-pencil-square"></i></div>
+      <div>
+        <div class="page-hdr-title">Edit Camera</div>
+        <div class="page-hdr-sub">Update camera details and location</div>
+      </div>
+    </div>
+    <a href="{% url 'admin_add_camera' %}" class="btn-back">
+      <i class="bi bi-arrow-left"></i> Back to Cameras
+    </a>
+  </div>
+
+  <div class="form-wrap">
+    <div class="form-card">
+
+      <div class="form-card-header">
+        <div class="form-card-ico"><i class="bi bi-camera-video-fill"></i></div>
+        <div>
+          <div class="form-card-title">{{ camera.camera_name }}</div>
+          <div class="form-card-sub">Click on the map to update location</div>
+        </div>
+      </div>
+
+      <div class="form-card-body">
+        <form method="POST">
+          {% csrf_token %}
+
+          <div class="field-group">
+            <label class="field-label" for="camera_name"><i class="bi bi-camera-video"></i> &nbsp;Camera Name</label>
+            <input type="text" id="camera_name" name="camera_name" class="field-input"
+                   value="{{ camera.camera_name }}" required>
+          </div>
+
+          <!-- Current coords info -->
+          <div class="coords-bar">
+            <i class="bi bi-geo-alt-fill"></i>
+            Current: <strong>{{ camera.latitude }}, {{ camera.longitude }}</strong>
+            &nbsp;— click map to change
+          </div>
+
+          <div class="field-group">
+            <div class="map-label">
+              <i class="bi bi-map-fill" style="color:var(--accent);"></i> Pick New Location
+              <span>(click on map to update coordinates)</span>
+            </div>
+            <div id="dvMap"></div>
+            <div class="lat-lng-row">
+              <div>
+                <label class="field-label">Latitude</label>
+                <input type="text" id="latitude" name="latitude" class="field-input"
+                       value="{{ camera.latitude }}" readonly required>
+              </div>
+              <div>
+                <label class="field-label">Longitude</label>
+                <input type="text" id="longitude" name="longitude" class="field-input"
+                       value="{{ camera.longitude }}" readonly required>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit">
+            <i class="bi bi-check-lg"></i> Save Changes
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  var existingLat = parseFloat("{{ camera.latitude }}");
+  var existingLng = parseFloat("{{ camera.longitude }}");
+
+  function initMap() {
+    var existingPos = new google.maps.LatLng(existingLat, existingLng);
+
+    var mapOptions = {
+      center: existingPos,
+      zoom: 15,
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
+
+    var map = new google.maps.Map(document.getElementById("dvMap"), mapOptions);
+
+    // Show existing marker
+    var marker = new google.maps.Marker({ position: existingPos, map: map });
+
+    google.maps.event.addListener(map, 'click', function(e) {
+      document.getElementById('latitude').value  = e.latLng.lat().toFixed(6);
+      document.getElementById('longitude').value = e.latLng.lng().toFixed(6);
+      marker.setMap(null);
+      marker = new google.maps.Marker({ position: e.latLng, map: map });
+    });
+  }
+  window.addEventListener('load', initMap);
+</script>
+{% endblock %}

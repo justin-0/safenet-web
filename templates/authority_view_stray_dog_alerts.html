@@ -1,0 +1,415 @@
+{% include 'authority_header.html' %}
+
+<style>
+  @keyframes fadeUp    { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes livePulse { 0%,100% { box-shadow:0 0 0 3px rgba(245,158,11,.3); } 50% { box-shadow:0 0 0 7px rgba(245,158,11,.06); } }
+
+  .res-page { padding: 110px 64px 80px; max-width: 1200px; margin: 0 auto; }
+
+  /* ── Top bar ── */
+  .res-topbar {
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:14px; margin-bottom:24px;
+    animation: fadeUp .5s ease both;
+  }
+  .res-topbar-left { display:flex; align-items:center; gap:13px; }
+  .res-tb-ico {
+    width:46px; height:46px; border-radius:13px; flex-shrink:0;
+    background:linear-gradient(135deg,#f59e0b,#fbbf24);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1.15rem;
+    box-shadow:0 0 22px rgba(245,158,11,.35);
+  }
+  .res-tb-title { font-family:var(--font-h); font-size:1.35rem; font-weight:800; color:var(--white); letter-spacing:-.4px; }
+  .res-tb-sub   { font-family:var(--font-b); font-size:.8rem; color:var(--muted); margin-top:2px; }
+  .res-count-badge {
+    display:inline-flex; align-items:center; gap:7px;
+    padding:8px 18px; border-radius:100px;
+    background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.22);
+    font-family:var(--font-b); font-size:.8rem; font-weight:700;
+    color:#fbbf24; letter-spacing:.05em;
+  }
+
+  /* ── Filter bar ── */
+  .filter-bar {
+    display:flex; align-items:center; gap:12px; margin-bottom:24px;
+    animation:fadeUp .5s .06s ease both; flex-wrap:wrap;
+  }
+  .search-wrap { position:relative; flex:1; min-width:220px; }
+  .search-wrap i {
+    position:absolute; left:13px; top:50%; transform:translateY(-50%);
+    color:var(--muted); font-size:.95rem; pointer-events:none;
+  }
+  .search-wrap input {
+    width:100%; background:rgba(5,14,10,.75); border:1px solid rgba(0,200,150,.12);
+    border-radius:11px; padding:10px 14px 10px 40px;
+    color:var(--white); font-family:var(--font-b); font-size:.85rem;
+    outline:none; transition:border-color .2s;
+  }
+  .search-wrap input:focus { border-color:rgba(0,200,150,.35); }
+  .search-wrap input::placeholder { color:var(--muted); }
+  .count-pill {
+    font-family:var(--font-b); font-size:.75rem; font-weight:700;
+    padding:6px 14px; border-radius:20px;
+    background:rgba(0,200,150,.08); border:1px solid rgba(0,200,150,.18);
+    color:var(--green); white-space:nowrap;
+  }
+
+  /* ── Grid ── */
+  .res-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+    gap:18px;
+    animation:fadeUp .5s .12s ease both;
+  }
+
+  /* ── Card ── */
+  .res-card {
+    background:rgba(5,14,10,.75); border:1px solid rgba(0,200,150,.12);
+    border-radius:24px; overflow:hidden; position:relative;
+    transition:transform .22s, box-shadow .22s, border-color .22s;
+  }
+  .res-card:hover {
+    transform:translateY(-5px);
+    box-shadow:0 18px 48px rgba(0,0,0,.45);
+    border-color:rgba(0,200,150,.2);
+  }
+  .res-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,#f59e0b,#fbbf24,#fde68a);
+    opacity:0; transition:opacity .22s;
+  }
+  .res-card:hover::before { opacity:1; }
+
+  /* Banner */
+  .res-banner {
+    height:160px; overflow:hidden; position:relative;
+    background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(251,191,36,.06));
+    border-bottom:1px solid rgba(0,200,150,.1);
+  }
+  .res-banner img { width:100%; height:100%; object-fit:cover; transition:transform .3s; }
+  .res-card:hover .res-banner img { transform:scale(1.04); }
+  .no-photo {
+    width:100%; height:100%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  }
+  .no-photo i { font-size:2.4rem; color:rgba(245,158,11,.35); }
+  .no-photo span { font-family:var(--font-b); font-size:.75rem; color:var(--muted); }
+
+  .alert-badge-overlay {
+    position:absolute; top:10px; right:10px;
+    display:inline-flex; align-items:center; gap:5px;
+    font-family:var(--font-b); font-size:.62rem; font-weight:700;
+    letter-spacing:.1em; text-transform:uppercase;
+    color:#fbbf24; background:rgba(245,158,11,.15);
+    border:1px solid rgba(245,158,11,.3); border-radius:20px;
+    padding:4px 10px; backdrop-filter:blur(6px);
+  }
+  .badge-dot { width:5px; height:5px; border-radius:50%; background:currentColor; animation:livePulse 2s infinite; }
+
+  /* Body */
+  .res-body { padding:18px 20px 16px; }
+  .res-name {
+    font-family:var(--font-h); font-size:1rem; font-weight:800;
+    color:var(--white); letter-spacing:-.2px; margin-bottom:2px;
+  }
+  .res-sub {
+    font-family:var(--font-b); font-size:.72rem; color:var(--green);
+    font-weight:600; margin-bottom:12px;
+  }
+
+  .desc-label {
+    font-family:var(--font-b); font-size:.6rem; font-weight:700;
+    letter-spacing:.1em; text-transform:uppercase; color:#f59e0b; margin-bottom:5px;
+  }
+  .desc-box {
+    background:rgba(245,158,11,.05); border:1px solid rgba(245,158,11,.14);
+    border-radius:10px; padding:10px 13px; margin-bottom:14px;
+    font-family:var(--font-b); font-size:.8rem; color:var(--white); line-height:1.6;
+  }
+  .desc-none { color:var(--muted); font-style:italic; }
+
+  /* Info rows */
+  .res-info-list { display:flex; flex-direction:column; gap:8px; }
+  .res-info-row {
+    display:flex; align-items:center; gap:11px;
+    padding:10px 13px; border-radius:11px;
+    background:rgba(0,200,150,.04); border:1px solid rgba(0,200,150,.08);
+    transition:background .2s, border-color .2s;
+  }
+  .res-info-row:hover { background:rgba(0,200,150,.08); border-color:rgba(0,200,150,.16); }
+  .res-info-ico {
+    width:32px; height:32px; border-radius:9px; flex-shrink:0;
+    background:linear-gradient(135deg,rgba(0,168,126,.22),rgba(0,200,150,.12));
+    color:var(--green); display:flex; align-items:center; justify-content:center; font-size:.8rem;
+  }
+  .res-info-tag { font-family:var(--font-b); font-size:.58rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:2px; }
+  .res-info-val { font-family:var(--font-b); font-size:.82rem; font-weight:600; color:var(--white); word-break:break-all; }
+
+  /* Footer */
+  .res-footer {
+    border-top:1px solid rgba(0,200,150,.08); padding:13px 20px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .footer-date {
+    font-family:var(--font-b); font-size:.72rem; color:var(--muted);
+    display:flex; align-items:center; gap:6px;
+  }
+  .footer-date i { color:#f59e0b; }
+  .btn-location {
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:var(--font-b); font-size:.75rem; font-weight:700;
+    color:var(--green); padding:7px 14px; border-radius:10px;
+    background:rgba(0,200,150,.07); border:1px solid rgba(0,200,150,.18);
+    transition:all .2s; cursor:pointer;
+  }
+  .btn-location:hover { background:rgba(0,200,150,.14); transform:translateY(-1px); }
+
+  /* Empty */
+  .empty-state { text-align:center; padding:80px 20px; grid-column:1/-1; }
+  .empty-ico {
+    width:72px; height:72px; border-radius:20px; margin:0 auto 16px;
+    background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.18);
+    display:flex; align-items:center; justify-content:center; color:#f59e0b; font-size:2rem;
+  }
+  .empty-title { font-family:var(--font-h); font-size:1.1rem; font-weight:800; color:var(--white); margin-bottom:6px; }
+  .empty-sub   { font-family:var(--font-b); font-size:.85rem; color:var(--muted); }
+
+  /* ── Map Modal ── */
+  .modal-bg {
+    display:none; position:fixed; inset:0;
+    background:rgba(2,13,10,.88); backdrop-filter:blur(8px);
+    z-index:9999; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-bg.show { display:flex; }
+  .modal-box {
+    background:rgba(5,14,10,.97); border:1px solid rgba(0,200,150,.2);
+    border-radius:24px; width:100%; max-width:680px; overflow:hidden; position:relative;
+    animation:fadeUp .25s ease both;
+    box-shadow:0 32px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(0,200,150,.1);
+  }
+  .modal-box::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,#f59e0b,#00c896,#00f0b0);
+    border-radius:24px 24px 0 0;
+  }
+  .modal-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 24px 14px; border-bottom:1px solid rgba(0,200,150,.08);
+  }
+  .modal-title-wrap { display:flex; align-items:center; gap:12px; }
+  .modal-ico {
+    width:38px; height:38px; border-radius:10px; flex-shrink:0;
+    background:linear-gradient(135deg,#00a87e,#00c896);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:.95rem; box-shadow:0 0 16px rgba(0,200,150,.28);
+  }
+  .modal-title { font-family:var(--font-h); font-size:1rem; font-weight:800; color:var(--white); }
+  .modal-sub   { font-family:var(--font-b); font-size:.72rem; color:var(--muted); margin-top:1px; }
+  .modal-close {
+    width:34px; height:34px; border-radius:9px; cursor:pointer;
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09);
+    color:var(--muted); font-size:.9rem;
+    display:flex; align-items:center; justify-content:center; transition:all .2s;
+  }
+  .modal-close:hover { background:rgba(239,68,68,.1); border-color:rgba(239,68,68,.2); color:#f87171; }
+  #modalMap { width:100%; height:360px; }
+  .modal-footer {
+    padding:14px 24px; border-top:1px solid rgba(0,200,150,.08);
+    display:flex; align-items:center; gap:10px;
+  }
+  .coords-display {
+    flex:1; font-family:var(--font-b); font-size:.78rem; color:var(--muted);
+    display:flex; align-items:center; gap:8px;
+  }
+  .coords-display i { color:var(--green); }
+  .coords-display strong { color:var(--green); }
+  .btn-close-modal {
+    padding:8px 18px; border-radius:9px; cursor:pointer;
+    background:rgba(255,255,255,.04); border:1px solid rgba(0,200,150,.12);
+    color:var(--muted); font-family:var(--font-b); font-size:.82rem; font-weight:700;
+    transition:all .2s;
+  }
+  .btn-close-modal:hover { color:var(--white); background:rgba(255,255,255,.08); }
+
+  @media(max-width:768px){ .res-page { padding:100px 20px 60px; } }
+</style>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD3MPnSnyWwNmpnVEFkaddVvy_GWtxSejs&sensor=false"></script>
+
+<div class="res-page">
+
+  <div class="res-topbar">
+    <div class="res-topbar-left">
+      <div class="res-tb-ico"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <div>
+        <div class="res-tb-title">Stray Dog Alerts</div>
+        <div class="res-tb-sub">Reported stray dog sightings by residents</div>
+      </div>
+    </div>
+    <div class="res-count-badge">
+      <i class="bi bi-bell-fill"></i>
+      {{ alerts|length }} Alert{{ alerts|length|pluralize }}
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <div class="search-wrap">
+      <i class="bi bi-search"></i>
+      <input type="text" id="searchInput" placeholder="Search by resident name or description…" onkeyup="filterCards()">
+    </div>
+    <div class="count-pill" id="countPill">{{ alerts|length }} Alert{{ alerts|length|pluralize }}</div>
+  </div>
+
+  <div class="res-grid" id="cardsGrid">
+
+    {% for alert in alerts %}
+    <div class="res-card"
+         data-search="{{ alert.RESIDENT.name|lower }} {% if alert.description %}{{ alert.description|lower }}{% endif %}">
+
+      <div class="res-banner">
+        {% if alert.photo %}
+          <img src="{{ alert.photo.url }}" alt="Stray dog alert">
+        {% else %}
+          <div class="no-photo">
+            <i class="bi bi-image"></i>
+            <span>No photo uploaded</span>
+          </div>
+        {% endif %}
+        <div class="alert-badge-overlay">
+          <div class="badge-dot"></div> Alert
+        </div>
+      </div>
+
+      <div class="res-body">
+        <div class="res-name">{{ alert.RESIDENT.name }}</div>
+        <div class="res-sub">House {{ alert.RESIDENT.house_number }}</div>
+
+        <div class="desc-label"><i class="bi bi-chat-left-text-fill"></i>&nbsp; Description</div>
+        <div class="desc-box">
+          {% if alert.description %}{{ alert.description }}
+          {% else %}<span class="desc-none">No description provided.</span>{% endif %}
+        </div>
+
+        <div class="res-info-list">
+          <div class="res-info-row">
+            <div class="res-info-ico"><i class="bi bi-person-fill"></i></div>
+            <div>
+              <div class="res-info-tag">Resident</div>
+              <div class="res-info-val">{{ alert.RESIDENT.name }}</div>
+            </div>
+          </div>
+          <div class="res-info-row">
+            <div class="res-info-ico"><i class="bi bi-telephone-fill"></i></div>
+            <div>
+              <div class="res-info-tag">Phone</div>
+              <div class="res-info-val">{{ alert.RESIDENT.phone }}</div>
+            </div>
+          </div>
+          <div class="res-info-row">
+            <div class="res-info-ico"><i class="bi bi-geo-alt-fill"></i></div>
+            <div>
+              <div class="res-info-tag">Coordinates</div>
+              <div class="res-info-val">{{ alert.latitude }}, {{ alert.longitude }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="res-footer">
+        <div class="footer-date">
+          <i class="bi bi-calendar-fill"></i>
+          {{ alert.date|date:"d M Y, H:i" }}
+        </div>
+        <button class="btn-location"
+          onclick="openMapModal('{{ alert.latitude }}','{{ alert.longitude }}','{{ alert.RESIDENT.name|escapejs }}')">
+          <i class="bi bi-map-fill"></i> View Location
+        </button>
+      </div>
+
+    </div>
+    {% empty %}
+    <div class="empty-state">
+      <div class="empty-ico"><i class="bi bi-exclamation-triangle"></i></div>
+      <div class="empty-title">No Alerts Found</div>
+      <div class="empty-sub">No stray dog alerts have been reported yet.</div>
+    </div>
+    {% endfor %}
+
+  </div>
+</div>
+
+<!-- Map Modal -->
+<div class="modal-bg" id="mapModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title-wrap">
+        <div class="modal-ico"><i class="bi bi-geo-alt-fill"></i></div>
+        <div>
+          <div class="modal-title" id="modalTitle">Alert Location</div>
+          <div class="modal-sub" id="modalSub">Reported by resident</div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeMapModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div id="modalMap"></div>
+    <div class="modal-footer">
+      <div class="coords-display">
+        <i class="bi bi-crosshair"></i>
+        <span>Coordinates: <strong id="coordsText">—</strong></span>
+      </div>
+      <button class="btn-close-modal" onclick="closeMapModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  var modalMapInstance = null;
+
+  function openMapModal(lat, lng, residentName) {
+    lat = parseFloat(lat); lng = parseFloat(lng);
+    document.getElementById('modalTitle').textContent = 'Alert Location';
+    document.getElementById('modalSub').textContent   = 'Reported by ' + residentName;
+    document.getElementById('coordsText').textContent = lat.toFixed(6) + ', ' + lng.toFixed(6);
+    document.getElementById('mapModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function() {
+      var pos = new google.maps.LatLng(lat, lng);
+      if (modalMapInstance) { modalMapInstance = null; document.getElementById('modalMap').innerHTML = ''; }
+      modalMapInstance = new google.maps.Map(document.getElementById('modalMap'), {
+        center: pos, zoom: 16, mapTypeId: google.maps.MapTypeId.ROADMAP
+      });
+      new google.maps.Marker({ position: pos, map: modalMapInstance,
+        title: 'Stray Dog Alert — ' + residentName, animation: google.maps.Animation.DROP });
+    }, 100);
+  }
+
+  function closeMapModal() {
+    document.getElementById('mapModal').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('mapModal').addEventListener('click', function(e) {
+    if (e.target === this) closeMapModal();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeMapModal();
+  });
+
+  function filterCards() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const cards = document.querySelectorAll('.res-card');
+    let visible = 0;
+    cards.forEach(card => {
+      const show = (card.dataset.search || '').includes(q);
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    document.getElementById('countPill').textContent = visible + ' Alert' + (visible !== 1 ? 's' : '');
+  }
+</script>
+
+{% include 'authority_footer.html' %}
+
+</body>
+</html>

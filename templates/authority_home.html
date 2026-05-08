@@ -1,0 +1,771 @@
+{% include 'authority_header.html' %}
+
+<!-- ══ AUTHORITY HOME STYLES ══ -->
+<style>
+
+  /* ── Keyframes ── */
+  @keyframes fadeSlideDown {
+    from { opacity:0; transform:translateY(24px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  @keyframes fadeSlideLeft {
+    from { opacity:0; transform:translateX(32px); }
+    to   { opacity:1; transform:translateX(0); }
+  }
+  @keyframes floatY {
+    0%,100% { transform:translateY(0); }
+    50%      { transform:translateY(-12px); }
+  }
+  @keyframes glowPulse {
+    0%,100% { box-shadow: 0 0 30px rgba(0,200,150,0.15); }
+    50%      { box-shadow: 0 0 60px rgba(0,200,150,0.35), 0 0 100px rgba(0,168,126,0.15); }
+  }
+  @keyframes scanLine {
+    0%   { top:0; opacity:0.6; }
+    100% { top:100%; opacity:0; }
+  }
+  @keyframes pulseDot {
+    0%,100% { box-shadow: 0 0 0 3px rgba(0,200,150,0.3); }
+    50%      { box-shadow: 0 0 0 7px rgba(0,200,150,0.06); }
+  }
+  @keyframes particleRise {
+    0%   { transform:translateY(0) translateX(0); opacity:0.4; }
+    100% { transform:translateY(-140px) translateX(20px); opacity:0; }
+  }
+
+  /* ── HERO ── */
+  #a-hero {
+    min-height: 100vh;
+    background: linear-gradient(150deg, #020d0a 0%, #030f0c 40%, #041a11 70%, #051f14 100%);
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .a-grid-overlay {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,200,150,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,150,0.03) 1px, transparent 1px);
+    background-size: 60px 60px; pointer-events: none;
+  }
+  .a-orb-1 {
+    position: absolute; top: -140px; right: -100px;
+    width: 640px; height: 640px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,168,126,0.16) 0%, transparent 65%);
+    pointer-events: none; animation: glowPulse 7s ease-in-out infinite;
+  }
+  .a-orb-2 {
+    position: absolute; bottom: 80px; left: -100px;
+    width: 500px; height: 500px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,200,150,0.08) 0%, transparent 68%);
+    pointer-events: none; animation: glowPulse 9s ease-in-out infinite reverse;
+  }
+
+  .a-particle {
+    position: absolute; border-radius: 50%; background: var(--green);
+    animation: particleRise linear infinite; pointer-events: none;
+  }
+
+  .a-hero-body {
+    flex: 1; display: flex; align-items: center;
+    padding: 140px 64px 80px;
+    position: relative; z-index: 2;
+  }
+  .a-hero-grid {
+    max-width: 1220px; margin: 0 auto; width: 100%;
+    display: grid; grid-template-columns: 1.1fr 0.9fr;
+    gap: 72px; align-items: center;
+  }
+  @media(max-width:1100px) { .a-hero-grid { grid-template-columns:1fr; gap:52px; } }
+  @media(max-width:640px)  { .a-hero-body { padding: 110px 20px 50px; } }
+
+  /* Badge */
+  .a-hero-badge {
+    display: inline-flex; align-items: center; gap: 9px;
+    background: rgba(0,200,150,0.07); border: 1px solid rgba(0,200,150,0.28);
+    color: var(--green); font-family: var(--font-b); font-size: 0.73rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 8px 18px; border-radius: 100px; margin-bottom: 30px;
+    animation: fadeSlideDown 0.7s ease both;
+  }
+  .a-badge-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green-lt); animation: pulseDot 2s infinite; }
+
+  .a-hero-h1 {
+    font-family: var(--font-h);
+    font-size: clamp(2.6rem, 5vw, 4.4rem);
+    font-weight: 800; color: var(--white); line-height: 1.07; letter-spacing: -1.5px;
+    margin-bottom: 24px;
+    animation: fadeSlideDown 0.7s 0.1s ease both;
+  }
+  .a-hero-h1 em {
+    font-style: normal;
+    background: linear-gradient(90deg, var(--green), var(--green-lt));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  .a-hero-sub {
+    font-family: var(--font-b); font-size: 1.02rem; color: rgba(237,255,248,0.55);
+    line-height: 1.84; margin-bottom: 42px; max-width: 490px;
+    animation: fadeSlideDown 0.7s 0.2s ease both;
+  }
+
+  .a-hero-cta {
+    display: flex; gap: 14px; flex-wrap: wrap;
+    animation: fadeSlideDown 0.7s 0.3s ease both;
+  }
+  .btn-a-primary {
+    display: inline-flex; align-items: center; gap: 9px;
+    background: linear-gradient(135deg, #00a87e, #00c896);
+    color: #fff; font-family: var(--font-b); font-size: 0.92rem; font-weight: 700;
+    padding: 14px 32px; border-radius: 12px; text-decoration: none;
+    box-shadow: 0 0 32px rgba(0,200,150,0.3), 0 8px 28px rgba(0,168,126,0.3);
+    transition: all 0.28s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .btn-a-primary:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 0 48px rgba(0,200,150,0.45), 0 14px 40px rgba(0,168,126,0.4); color:#fff; }
+  .btn-a-outline {
+    display: inline-flex; align-items: center; gap: 9px;
+    border: 1.5px solid rgba(0,200,150,0.28); color: rgba(237,255,248,0.75);
+    font-family: var(--font-b); font-size: 0.92rem; font-weight: 500;
+    padding: 14px 28px; border-radius: 12px; text-decoration: none;
+    backdrop-filter: blur(6px);
+    transition: all 0.25s ease;
+  }
+  .btn-a-outline:hover { border-color: rgba(0,200,150,0.6); color: var(--white); background: rgba(0,200,150,0.07); }
+
+  /* Hero stats strip */
+  .a-stats-strip {
+    display: flex; gap: 0; margin-top: 50px; padding-top: 38px;
+    border-top: 1px solid rgba(0,200,150,0.1);
+    animation: fadeSlideDown 0.7s 0.4s ease both;
+  }
+  .a-stat { padding-right: 32px; margin-right: 32px; border-right: 1px solid rgba(0,200,150,0.1); }
+  .a-stat:last-child { border-right: none; padding-right: 0; margin-right: 0; }
+  .a-stat-num {
+    font-family: var(--font-h); font-size: 2.1rem; font-weight: 800;
+    background: linear-gradient(90deg, var(--green), var(--green-lt));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1;
+  }
+  .a-stat-lbl { font-family: var(--font-b); font-size: 0.74rem; color: rgba(237,255,248,0.32); margin-top: 5px; }
+
+  /* ── Hero right glass card ── */
+  .a-hero-panel {
+    position: relative;
+    animation: fadeSlideLeft 0.9s 0.2s ease both;
+  }
+  .a-glass-card {
+    background: rgba(5,14,10,0.7);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(0,200,150,0.16); border-radius: 28px; padding: 32px;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,200,150,0.05) inset;
+    position: relative; overflow: hidden;
+  }
+  .a-glass-card::before {
+    content: ''; position: absolute; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(0,200,150,0.6), transparent);
+    animation: scanLine 4s linear infinite; pointer-events: none;
+  }
+  .a-card-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px;
+  }
+  .a-card-title { font-family: var(--font-h); font-size: 1.05rem; font-weight: 700; color: var(--white); }
+  .a-card-ai-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(0,200,150,0.12); border: 1px solid rgba(0,200,150,0.28);
+    color: var(--green); font-size: 0.68rem; font-weight: 700;
+    padding: 4px 10px; border-radius: 100px; letter-spacing: 0.06em;
+  }
+
+  /* Task rows inside card */
+  .a-task-row {
+    display: flex; align-items: center; gap: 13px;
+    padding: 12px 14px; border-radius: 13px;
+    background: rgba(0,200,150,0.04); border: 1px solid rgba(0,200,150,0.07);
+    margin-bottom: 8px; transition: background 0.2s, border-color 0.2s; cursor: default;
+  }
+  .a-task-row:hover { background: rgba(0,200,150,0.09); border-color: rgba(0,200,150,0.2); }
+  .a-task-ico {
+    width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
+    background: linear-gradient(135deg, rgba(0,168,126,0.22), rgba(0,200,150,0.14));
+    color: var(--green); display: flex; align-items: center; justify-content: center; font-size: 1rem;
+  }
+  .a-task-name { font-family: var(--font-b); font-size: 0.87rem; font-weight: 600; color: var(--white); }
+  .a-task-desc { font-size: 0.73rem; color: rgba(237,255,248,0.36); margin-top: 1px; }
+  .a-card-footer {
+    margin-top: 14px; padding: 10px 14px;
+    background: rgba(0,168,126,0.1); border: 1px solid rgba(0,168,126,0.18);
+    border-radius: 10px;
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--font-b); font-size: 0.76rem; color: rgba(237,255,248,0.45);
+  }
+  .a-card-footer i { color: var(--green); font-size: 0.88rem; }
+
+  /* Floating chips */
+  .a-float-chip {
+    position: absolute;
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 15px; border-radius: 12px;
+    background: rgba(3,14,10,0.9); backdrop-filter: blur(12px);
+    border: 1px solid rgba(0,200,150,0.2);
+    box-shadow: 0 12px 36px rgba(0,0,0,0.4), 0 0 20px rgba(0,200,150,0.08);
+    font-family: var(--font-b); font-size: 0.76rem; font-weight: 600; color: var(--white);
+    white-space: nowrap;
+  }
+  .a-float-chip.chip-a { top: -18px; right: -22px; animation: floatY 3.5s ease-in-out infinite; }
+  .a-float-chip.chip-b { bottom: -14px; left: -18px; animation: floatY 3.5s ease-in-out infinite; animation-delay: 1.8s; }
+  .chip-green-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green-lt); animation: pulseDot 2s infinite; }
+
+  /* Hero wave */
+  .a-hero-wave { position: relative; z-index: 3; line-height: 0; margin-top: -2px; }
+  .a-hero-wave svg { display: block; width: 100%; }
+
+  /* ── WAVE SECTION DIVIDERS ── */
+  .a-wave { position: relative; line-height: 0; overflow: hidden; }
+  .a-wave svg { display: block; width: 100%; }
+
+  /* ── FEATURE CARDS SECTION ── */
+  #a-features { background: #040e09; padding: 100px 64px; }
+  .a-feat-grid {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 22px;
+    max-width: 1220px; margin: 0 auto;
+  }
+  @media(max-width:1000px) { .a-feat-grid { grid-template-columns:1fr 1fr; } }
+  @media(max-width:640px)  { .a-feat-grid { grid-template-columns:1fr; } }
+
+  .a-feat-card {
+    background: rgba(5,14,10,0.8); border: 1px solid rgba(0,200,150,0.1);
+    border-radius: 22px; padding: 36px 30px;
+    position: relative; overflow: hidden;
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s, border-color 0.3s;
+  }
+  .a-feat-card::after {
+    content: ''; position: absolute; top:0; left:0; right:0; height: 2px;
+    background: linear-gradient(90deg, #00a87e, #00c896, #00f0b0);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .a-feat-card:hover { transform: translateY(-8px); box-shadow: 0 24px 60px rgba(0,168,126,0.18); border-color: rgba(0,200,150,0.22); }
+  .a-feat-card:hover::after { opacity: 1; }
+
+  .a-feat-ico {
+    width: 52px; height: 52px; border-radius: 14px; margin-bottom: 20px;
+    background: linear-gradient(135deg, rgba(0,168,126,0.2), rgba(0,200,150,0.12));
+    color: var(--green); display: flex; align-items: center; justify-content: center;
+    font-size: 1.35rem;
+    box-shadow: 0 0 18px rgba(0,200,150,0.1);
+    transition: transform 0.3s, background 0.3s;
+  }
+  .a-feat-card:hover .a-feat-ico { transform: scale(1.1) rotate(-5deg); box-shadow: 0 0 28px rgba(0,200,150,0.22); }
+  .a-feat-card h4 { font-family: var(--font-h); font-size: 1.05rem; font-weight: 700; color: var(--white); margin-bottom: 10px; }
+  .a-feat-card p  { font-family: var(--font-b); font-size: 0.86rem; color: rgba(237,255,248,0.42); line-height: 1.76; }
+  .a-feat-num {
+    position: absolute; bottom: 16px; right: 20px;
+    font-family: var(--font-h); font-size: 3rem; font-weight: 800;
+    color: rgba(0,200,150,0.04); line-height: 1; pointer-events: none;
+  }
+
+  /* ── SHOWCASE ── */
+  #a-showcase { background: #030c07; padding: 100px 64px; position: relative; overflow: hidden; }
+  #a-showcase::before {
+    content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 700px; height: 700px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,168,126,0.05) 0%, transparent 68%);
+  }
+  .a-showcase-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;
+    max-width: 1220px; margin: 0 auto; position: relative; z-index: 2;
+  }
+  @media(max-width:1000px) { .a-showcase-grid { grid-template-columns:1fr; } }
+
+  .a-img-stack { position: relative; }
+  .a-img-main {
+    width: 100%; height: 400px; object-fit: cover; border-radius: 22px;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+    border: 1px solid rgba(0,200,150,0.12);
+  }
+  .a-img-accent {
+    position: absolute; bottom: -28px; right: -24px;
+    width: 190px; height: 140px; object-fit: cover;
+    border-radius: 14px; border: 3px solid rgba(3,12,7,0.95);
+    box-shadow: 0 14px 42px rgba(0,0,0,0.45);
+  }
+  .a-img-stat {
+    position: absolute; top: 24px; left: -18px;
+    background: rgba(5,14,10,0.9); backdrop-filter: blur(16px);
+    border: 1px solid rgba(0,200,150,0.2); border-radius: 14px;
+    padding: 13px 17px; box-shadow: 0 12px 36px rgba(0,0,0,0.4);
+    display: flex; align-items: center; gap: 11px;
+  }
+  .a-stat-ico {
+    width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+    background: linear-gradient(135deg, #00a87e, #00c896);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; box-shadow: 0 0 18px rgba(0,200,150,0.35);
+  }
+  .a-stat-num {
+    font-family: var(--font-h); font-size: 1.4rem; font-weight: 800;
+    background: linear-gradient(90deg, var(--green), var(--green-lt));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1;
+  }
+  .a-stat-lbl { font-family: var(--font-b); font-size: 0.7rem; color: rgba(237,255,248,0.35); margin-top: 2px; }
+
+  .a-showcase-text h2 {
+    font-family: var(--font-h); font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 800;
+    color: var(--white); line-height: 1.12; margin-bottom: 16px; letter-spacing: -0.5px;
+  }
+  .a-showcase-text h2 em { font-style: normal; color: var(--green); }
+  .a-showcase-text p {
+    font-family: var(--font-b); font-size: 0.96rem; color: rgba(237,255,248,0.48); line-height: 1.84; margin-bottom: 32px;
+  }
+  .a-checklist { list-style: none; margin-bottom: 36px; }
+  .a-checklist li {
+    display: flex; align-items: flex-start; gap: 12px;
+    font-family: var(--font-b); font-size: 0.9rem; color: rgba(237,255,248,0.58);
+    margin-bottom: 12px;
+  }
+  .a-ck-ico {
+    width: 22px; height: 22px; border-radius: 7px; flex-shrink: 0; margin-top: 1px;
+    background: rgba(0,200,150,0.12); color: var(--green);
+    display: flex; align-items: center; justify-content: center; font-size: 0.68rem;
+  }
+
+  /* ── HOW IT WORKS ── */
+  #a-how { background: #040e09; padding: 100px 64px; }
+  .a-steps-grid {
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 18px;
+    max-width: 1220px; margin: 0 auto; position: relative;
+  }
+  .a-steps-grid::before {
+    content: ''; position: absolute; top: 48px; left: 10%; right: 10%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,200,150,0.22), rgba(0,200,150,0.22), transparent);
+    pointer-events: none;
+  }
+  @media(max-width:900px) { .a-steps-grid { grid-template-columns:1fr 1fr; } .a-steps-grid::before { display:none; } }
+  @media(max-width:540px) { .a-steps-grid { grid-template-columns:1fr; } }
+
+  .a-step-card {
+    text-align: center; padding: 36px 20px 30px;
+    border-radius: 20px; background: rgba(5,14,10,0.65);
+    border: 1px solid rgba(0,200,150,0.1); backdrop-filter: blur(8px);
+    transition: background 0.3s, transform 0.3s, border-color 0.3s; position: relative;
+  }
+  .a-step-card:hover { background: rgba(0,168,126,0.07); transform: translateY(-6px); border-color: rgba(0,200,150,0.24); }
+  .a-step-num { font-family: var(--font-h); font-size: 2.8rem; font-weight: 800; color: rgba(0,200,150,0.06); line-height: 1; margin-bottom: 10px; }
+  .a-step-ico {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: rgba(0,200,150,0.08); border: 1.5px solid rgba(0,200,150,0.2);
+    color: var(--green); display: flex; align-items: center; justify-content: center;
+    font-size: 1.35rem; margin: 0 auto 18px;
+    transition: background 0.3s, box-shadow 0.3s;
+  }
+  .a-step-card:hover .a-step-ico { background: rgba(0,200,150,0.15); box-shadow: 0 0 24px rgba(0,200,150,0.2); }
+  .a-step-card h4 { font-family: var(--font-h); font-size: 0.98rem; font-weight: 700; color: var(--white); margin-bottom: 9px; }
+  .a-step-card p  { font-family: var(--font-b); font-size: 0.81rem; color: rgba(237,255,248,0.38); line-height: 1.7; }
+
+  /* ── AI MODULE SECTION ── */
+  #a-ai { background: #030c07; padding: 100px 64px; }
+  .a-ai-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 26px;
+    max-width: 1220px; margin: 0 auto;
+  }
+  @media(max-width:900px) { .a-ai-grid { grid-template-columns:1fr; } }
+
+  .a-ai-card {
+    border-radius: 26px; padding: 46px 40px;
+    border: 1px solid rgba(0,200,150,0.1);
+    background: rgba(5,14,10,0.8);
+    position: relative; overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+  }
+  .a-ai-card:hover { transform: translateY(-5px); box-shadow: 0 20px 56px rgba(0,168,126,0.15); border-color: rgba(0,200,150,0.22); }
+  .a-ai-bg { position: absolute; bottom: -70px; right: -70px; width: 240px; height: 240px; border-radius: 50%; pointer-events: none; opacity: 0.06; }
+  .a-ai-card-face .a-ai-bg { background: var(--green); }
+  .a-ai-card-speech .a-ai-bg { background: var(--amber); }
+
+  .a-ai-ico {
+    width: 64px; height: 64px; border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.65rem; margin-bottom: 24px; position: relative; z-index: 1;
+  }
+  .a-ai-card-face .a-ai-ico { background: linear-gradient(135deg,rgba(0,200,150,0.15),rgba(0,240,176,0.1)); color: var(--green); box-shadow: 0 0 24px rgba(0,200,150,0.12); }
+  .a-ai-card-speech .a-ai-ico { background: linear-gradient(135deg,rgba(245,158,11,0.16),rgba(251,191,36,0.08)); color: var(--amber); box-shadow: 0 0 24px rgba(245,158,11,0.12); }
+
+  .a-ai-card h3 { font-family: var(--font-h); font-size: 1.45rem; font-weight: 800; color: var(--white); margin-bottom: 12px; position: relative; z-index: 1; }
+  .a-ai-card p  { font-family: var(--font-b); font-size: 0.91rem; color: rgba(237,255,248,0.48); line-height: 1.84; margin-bottom: 24px; position: relative; z-index: 1; }
+  .a-ai-tags { display: flex; flex-wrap: wrap; gap: 8px; position: relative; z-index: 1; }
+  .a-ai-tag {
+    padding: 5px 13px; border-radius: 100px;
+    font-family: var(--font-b); font-size: 0.74rem; font-weight: 600;
+    background: rgba(0,200,150,0.08); color: var(--green); border: 1px solid rgba(0,200,150,0.14);
+  }
+  .a-ai-card-speech .a-ai-tag { background: rgba(245,158,11,0.08); color: var(--amber); border-color: rgba(245,158,11,0.14); }
+
+  /* ── STATS BANNER ── */
+  #a-stats {
+    background: linear-gradient(135deg, #020d0a 0%, #040f0c 50%, #051309 100%);
+    padding: 80px 64px; position: relative; overflow: hidden;
+  }
+  #a-stats::before {
+    content: ''; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,200,150,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,150,0.025) 1px, transparent 1px);
+    background-size: 54px 54px;
+  }
+  .a-stats-row {
+    max-width: 1220px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(4,1fr);
+    position: relative; z-index: 2;
+  }
+  @media(max-width:800px) { .a-stats-row { grid-template-columns:1fr 1fr; } }
+  .a-stat-item {
+    text-align: center; padding: 24px 20px;
+    border-right: 1px solid rgba(0,200,150,0.08);
+  }
+  .a-stat-item:last-child { border-right: none; }
+  .a-stat-big {
+    font-family: var(--font-h); font-size: 3rem; font-weight: 800;
+    background: linear-gradient(90deg, var(--green), var(--green-lt));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1;
+  }
+  .a-stat-lbl2 { font-family: var(--font-b); font-size: 0.82rem; color: rgba(237,255,248,0.32); margin-top: 8px; }
+
+  /* ── RESPONSIVE shared ── */
+  @media(max-width:1000px) {
+    #a-features, #a-showcase, #a-how, #a-ai, #a-stats { padding-left: 32px; padding-right: 32px; }
+  }
+  @media(max-width:640px) {
+    #a-features, #a-showcase, #a-how, #a-ai, #a-stats { padding-left: 20px; padding-right: 20px; }
+    .a-stats-strip { flex-direction: column; gap: 16px; }
+    .a-stat { border-right: none; padding-right: 0; border-bottom: 1px solid rgba(0,200,150,0.1); padding-bottom: 16px; }
+    .a-stat:last-child { border-bottom: none; }
+  }
+</style>
+
+<!-- ══ HERO ══ -->
+<section id="a-hero">
+  <div class="a-grid-overlay"></div>
+  <div class="a-orb-1"></div>
+  <div class="a-orb-2"></div>
+
+  <div class="a-particle" style="width:3px;height:3px;left:14%;top:35%;animation-duration:6s;opacity:0.4;"></div>
+  <div class="a-particle" style="width:2px;height:2px;left:58%;top:22%;animation-duration:8s;animation-delay:1.2s;opacity:0.3;"></div>
+  <div class="a-particle" style="width:4px;height:4px;left:82%;top:52%;animation-duration:7s;animation-delay:2s;opacity:0.35;"></div>
+  <div class="a-particle" style="width:2px;height:2px;left:33%;top:72%;animation-duration:9s;animation-delay:0.6s;opacity:0.3;"></div>
+
+  <div class="a-hero-body">
+    <div class="a-hero-grid">
+
+      <!-- Left -->
+      <div>
+        <div class="a-hero-badge"><div class="a-badge-dot"></div> Authority Command Center</div>
+        <h1 class="a-hero-h1">
+          Verify. Protect.<br>
+          <em>Respond. Resolve.</em>
+        </h1>
+        <p class="a-hero-sub">
+          Your authority dashboard for SafeNet AI — verify residents and workers, respond to complaints, monitor AI-flagged alerts, and communicate with your community through an intelligent, AI-moderated platform.
+        </p>
+        <div class="a-hero-cta">
+          <a href="#a-features" class="btn-a-primary">
+            <i class="bi bi-grid-fill"></i> Explore Features
+          </a>
+          <a href="#a-how" class="btn-a-outline">
+            <i class="bi bi-play-circle"></i> How It Works
+          </a>
+        </div>
+        <div class="a-stats-strip">
+          <div class="a-stat"><div class="a-stat-num">AI</div><div class="a-stat-lbl">Chat Moderation</div></div>
+          <div class="a-stat"><div class="a-stat-num">SOS</div><div class="a-stat-lbl">Emergency Response</div></div>
+          <div class="a-stat"><div class="a-stat-num">Live</div><div class="a-stat-lbl">Alert Monitoring</div></div>
+          <div class="a-stat"><div class="a-stat-num">24/7</div><div class="a-stat-lbl">Active Duty</div></div>
+        </div>
+      </div>
+
+      <!-- Right: Glass card -->
+      <div class="a-hero-panel">
+        <div class="a-float-chip chip-a">
+          <div class="chip-green-dot"></div> AI-Powered Platform
+        </div>
+
+        <div class="a-glass-card">
+          <div class="a-card-header">
+            <span class="a-card-title">Authority Capabilities</span>
+            <span class="a-card-ai-pill"><i class="bi bi-cpu"></i> AI Enabled</span>
+          </div>
+
+          <div class="a-task-row">
+            <div class="a-task-ico"><i class="bi bi-person-check-fill"></i></div>
+            <div>
+              <div class="a-task-name">Identity Verification</div>
+              <div class="a-task-desc">Verify residents & workers before granting access</div>
+            </div>
+          </div>
+
+          <div class="a-task-row">
+            <div class="a-task-ico"><i class="bi bi-bell-fill"></i></div>
+            <div>
+              <div class="a-task-name">Emergency Alert Monitoring</div>
+              <div class="a-task-desc">Receive SOS, stray & intruder alerts instantly</div>
+            </div>
+          </div>
+
+          <div class="a-task-row">
+            <div class="a-task-ico"><i class="bi bi-chat-square-text-fill"></i></div>
+            <div>
+              <div class="a-task-name">Complaint Management</div>
+              <div class="a-task-desc">Review, reply & resolve resident complaints</div>
+            </div>
+          </div>
+
+          <div class="a-task-row">
+            <div class="a-task-ico"><i class="bi bi-shield-fill-check"></i></div>
+            <div>
+              <div class="a-task-name">AI Chat Moderation</div>
+              <div class="a-task-desc">Hate speech flagged automatically in every chat</div>
+            </div>
+          </div>
+
+          <div class="a-task-row">
+            <div class="a-task-ico"><i class="bi bi-camera-fill"></i></div>
+            <div>
+              <div class="a-task-name">Face Recognition Logs</div>
+              <div class="a-task-desc">Auto-logged unauthorized entry attempts at gate</div>
+            </div>
+          </div>
+
+          <div class="a-card-footer">
+            <i class="bi bi-camera-video-fill"></i>
+            Face Recognition & Hate Speech Detection Enabled
+          </div>
+        </div>
+
+        <div class="a-float-chip chip-b">
+          <i class="bi bi-shield-fill-check" style="color:var(--green);font-size:0.9rem;"></i>
+          Community Protection Active
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Wave -->
+  <div class="a-hero-wave">
+    <svg viewBox="0 0 1440 110" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,70 C180,25 360,100 540,60 C720,25 900,90 1080,55 C1260,20 1380,70 1440,55 L1440,110 L0,110 Z" fill="rgba(0,200,150,0.03)"/>
+      <path d="M0,85 C240,45 480,100 720,72 C960,45 1200,95 1440,68 L1440,110 L0,110 Z" fill="rgba(0,168,126,0.04)"/>
+      <path d="M0,95 C300,60 600,108 900,82 C1100,62 1300,98 1440,88 L1440,110 L0,110 Z" fill="#040e09"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ══ FEATURES ══ -->
+<section id="a-features">
+  <div style="max-width:1220px;margin:0 auto;">
+    <div class="sec-head">
+      <span class="eyebrow">Authority Tools</span>
+      <h2 class="sec-h2">Everything You Need to <em>Keep Order</em></h2>
+      <p class="sec-p">A comprehensive toolkit built for authority officers — from identity verification to AI-powered community monitoring.</p>
+    </div>
+    <div class="a-feat-grid">
+
+      <div class="a-feat-card reveal">
+        <div class="a-feat-ico"><i class="bi bi-person-check-fill"></i></div>
+        <h4>Resident Verification</h4>
+        <p>Review new resident registrations, validate ID documents, and approve or reject access. Every verified resident is logged with your authority credentials for full accountability.</p>
+        <div class="a-feat-num">01</div>
+      </div>
+
+      <div class="a-feat-card reveal">
+        <div class="a-feat-ico"><i class="bi bi-tools"></i></div>
+        <h4>Worker Approval</h4>
+        <p>Screen and approve worker registrations by category. Only authority-verified workers gain access to the platform, ensuring only trusted service providers operate within the community.</p>
+        <div class="a-feat-num">02</div>
+      </div>
+
+      <div class="a-feat-card reveal">
+        <div class="a-feat-ico"><i class="bi bi-chat-square-text-fill"></i></div>
+        <h4>Complaint Resolution</h4>
+        <p>Receive structured complaints from residents, review details, and send official replies. Every complaint is tracked from submission to resolution with timestamps and status updates.</p>
+        <div class="a-feat-num">03</div>
+      </div>
+
+      <div class="a-feat-card reveal">
+        <div class="a-feat-ico"><i class="bi bi-bell-fill"></i></div>
+        <h4>Emergency Alert Response</h4>
+        <p>Receive real-time SOS alerts triggered via panic button, phone shake, or volume key press — complete with GPS coordinates. Stray dog incident reports are logged for immediate action.</p>
+        <div class="a-feat-num">04</div>
+      </div>
+
+      <div class="a-feat-card reveal">
+        <div class="a-feat-ico"><i class="bi bi-shield-exclamation"></i></div>
+        <h4>AI Chat Moderation</h4>
+        <p>Communicate with residents through a secure chat system with built-in hate speech detection. Toxic messages are automatically flagged, keeping all community dialogue respectful and safe.</p>
+        <div class="a-feat-num">05</div>
+      </div>
+
+      <div class="a-feat-card reveal">
+        <div class="a-feat-ico"><i class="bi bi-camera-fill"></i></div>
+        <h4>Entry & Face Logs</h4>
+        <p>Monitor unauthorized entry logs from AI face recognition at community gates. Every flagged incident is timestamped and available for review, ensuring zero unnoticed breaches.</p>
+        <div class="a-feat-num">06</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Wave -->
+  <div class="a-wave rev" style="margin-top:70px;">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,40 C240,80 480,10 720,50 C960,85 1200,15 1440,45 L1440,80 L0,80 Z" fill="rgba(0,200,150,0.03)"/>
+      <path d="M0,55 C300,10 600,75 900,42 C1100,20 1320,65 1440,50 L1440,80 L0,80 Z" fill="#030c07"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ══ SHOWCASE ══ -->
+<section id="a-showcase">
+  <div style="max-width:1220px;margin:0 auto;position:relative;z-index:2;">
+  <div class="a-showcase-grid">
+
+    <div class="a-img-stack reveal">
+      <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80" alt="Authority operations" class="a-img-main">
+      <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=80" alt="Community management" class="a-img-accent">
+      <div class="a-img-stat">
+        <div class="a-stat-ico"><i class="bi bi-shield-check"></i></div>
+        <div>
+          <div class="a-stat-num">100%</div>
+          <div class="a-stat-lbl">Verified Access</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="a-showcase-text reveal">
+      <span class="eyebrow">Why This Matters</span>
+      <h2>Authority That Moves <em>At the Speed of AI</em></h2>
+      <p>Traditional community management depends on phone calls and manual records — slow, unaccountable, and ineffective. SafeNet AI's Authority module replaces all that with structured, AI-assisted, real-time management tools designed for decisive action.</p>
+      <ul class="a-checklist">
+        <li><span class="a-ck-ico"><i class="bi bi-check-lg"></i></span>Structured complaint tracking with full audit trails</li>
+        <li><span class="a-ck-ico"><i class="bi bi-check-lg"></i></span>AI hate speech detection protects every conversation</li>
+        <li><span class="a-ck-ico"><i class="bi bi-check-lg"></i></span>Emergency SOS alerts with real-time GPS coordinates</li>
+        <li><span class="a-ck-ico"><i class="bi bi-check-lg"></i></span>Face recognition logs every unauthorized entry attempt</li>
+        <li><span class="a-ck-ico"><i class="bi bi-check-lg"></i></span>Worker verification ensures only trusted providers serve residents</li>
+      </ul>
+      <a href="#a-ai" class="btn-a-primary" style="align-self:flex-start;">
+        <i class="bi bi-arrow-right-circle"></i> Explore AI Features
+      </a>
+    </div>
+
+  </div><!-- end inner -->
+
+  <!-- Wave -->
+  <div class="a-wave" style="margin-top:70px;">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,35 C360,80 720,5 1080,45 C1260,65 1380,20 1440,38 L1440,80 L0,80 Z" fill="rgba(0,200,150,0.03)"/>
+      <path d="M0,55 C240,15 480,75 720,48 C960,20 1200,70 1440,52 L1440,80 L0,80 Z" fill="#040e09"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ══ HOW IT WORKS ══ -->
+<section id="a-how">
+  <div style="max-width:1220px;margin:0 auto;text-align:center;margin-bottom:60px;">
+    <span class="eyebrow" style="display:inline-flex;justify-content:center;">Your Workflow</span>
+    <h2 class="sec-h2">How Authority <em>Actions Work</em></h2>
+    <p class="sec-p" style="max-width:480px;margin:0 auto;">A clear four-step operational flow — from identity verification to real-time incident response.</p>
+  </div>
+  <div class="a-steps-grid">
+    <div class="a-step-card reveal">
+      <div class="a-step-num">01</div>
+      <div class="a-step-ico"><i class="bi bi-person-check-fill"></i></div>
+      <h4>Verify Identities</h4>
+      <p>Review resident and worker registrations. Check documents and approve verified individuals to gain community access.</p>
+    </div>
+    <div class="a-step-card reveal">
+      <div class="a-step-num">02</div>
+      <div class="a-step-ico"><i class="bi bi-chat-dots-fill"></i></div>
+      <h4>Handle Complaints</h4>
+      <p>Receive structured complaints, review details, and send official replies. All interactions are tracked and timestamped.</p>
+    </div>
+    <div class="a-step-card reveal">
+      <div class="a-step-num">03</div>
+      <div class="a-step-ico"><i class="bi bi-bell-fill"></i></div>
+      <h4>Respond to Alerts</h4>
+      <p>Act on SOS emergencies, stray dog reports, and AI-detected unauthorized entries — all with GPS data and full context.</p>
+    </div>
+    <div class="a-step-card reveal">
+      <div class="a-step-num">04</div>
+      <div class="a-step-ico"><i class="bi bi-shield-fill-check"></i></div>
+      <h4>Monitor & Protect</h4>
+      <p>Use AI moderation flags and face recognition logs to maintain community safety, accountability, and transparent governance.</p>
+    </div>
+  </div>
+
+  <!-- Wave -->
+  <div class="a-wave rev" style="margin-top:70px;">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,45 C300,10 600,70 900,40 C1100,18 1300,62 1440,42 L1440,80 L0,80 Z" fill="rgba(0,200,150,0.03)"/>
+      <path d="M0,60 C240,85 480,20 720,55 C960,85 1200,18 1440,52 L1440,80 L0,80 Z" fill="#030c07"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ══ AI MODULES ══ -->
+<section id="a-ai">
+  <div style="max-width:1220px;margin:0 auto;">
+    <div class="sec-head" style="text-align:center;">
+      <span class="eyebrow" style="display:inline-flex;justify-content:center;">AI Technology</span>
+      <h2 class="sec-h2" style="max-width:560px;margin:0 auto 18px;">Your Eyes & Ears — <em>Powered by AI</em></h2>
+      <p class="sec-p" style="max-width:520px;margin:0 auto;">Two AI modules working silently in the background — protecting the community even when you're not watching.</p>
+    </div>
+    <div class="a-ai-grid">
+
+      <div class="a-ai-card a-ai-card-face reveal">
+        <div class="a-ai-bg"></div>
+        <div class="a-ai-ico"><i class="bi bi-camera-fill"></i></div>
+        <h3>Face Recognition</h3>
+        <p>SafeNet AI's recognition engine continuously scans entry points, cross-referencing faces against the resident database in real time. Unauthorized individuals trigger instant alerts to your authority dashboard — complete with timestamp and location — so no breach ever goes unnoticed.</p>
+        <div class="a-ai-tags">
+          <span class="a-ai-tag">Unauthorized Entry Detection</span>
+          <span class="a-ai-tag">Real-Time Alerts</span>
+          <span class="a-ai-tag">Auto Logging</span>
+          <span class="a-ai-tag">24/7 Active</span>
+        </div>
+      </div>
+
+      <div class="a-ai-card a-ai-card-speech reveal">
+        <div class="a-ai-bg"></div>
+        <div class="a-ai-ico"><i class="bi bi-shield-fill-exclamation"></i></div>
+        <h3>Hate Speech Detection</h3>
+        <p>Every message sent between residents and authority passes through an AI hate speech layer. Toxic or abusive content is flagged instantly with a hate_speech_flag marker, protecting community morale and ensuring conversations remain safe, respectful, and legally accountable at all times.</p>
+        <div class="a-ai-tags">
+          <span class="a-ai-tag">Chat Moderation</span>
+          <span class="a-ai-tag">Toxic Content Flagging</span>
+          <span class="a-ai-tag">Auto Detection</span>
+          <span class="a-ai-tag">Community Safety</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Wave -->
+  <div class="a-wave" style="margin-top:70px;">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,42 C240,80 480,12 720,52 C960,88 1200,18 1440,46 L1440,80 L0,80 Z" fill="rgba(0,200,150,0.03)"/>
+      <path d="M0,58 C300,18 600,74 900,44 C1100,22 1320,65 1440,50 L1440,80 L0,80 Z" fill="#040e09"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ══ STATS ══ -->
+<section id="a-stats">
+  <div class="a-stats-row">
+    <div class="a-stat-item reveal"><div class="a-stat-big">AI</div><div class="a-stat-lbl2">Chat Moderation</div></div>
+    <div class="a-stat-item reveal"><div class="a-stat-big">SOS</div><div class="a-stat-lbl2">Emergency Response</div></div>
+    <div class="a-stat-item reveal"><div class="a-stat-big">100%</div><div class="a-stat-lbl2">Verified Access</div></div>
+    <div class="a-stat-item reveal"><div class="a-stat-big">24/7</div><div class="a-stat-lbl2">Live Monitoring</div></div>
+  </div>
+</section>
+
+{% include 'authority_footer.html' %}
+
+</body>
+</html>

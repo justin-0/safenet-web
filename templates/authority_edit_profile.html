@@ -1,0 +1,433 @@
+{% include 'authority_header.html' %}
+
+<style>
+  @keyframes fadeUp   { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes pulseDot { 0%,100% { box-shadow:0 0 0 3px rgba(0,200,150,.3); } 50% { box-shadow:0 0 0 7px rgba(0,200,150,.06); } }
+  @keyframes errShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+
+  .edit-page { padding: 110px 64px 80px; max-width: 860px; margin: 0 auto; }
+
+  /* ── Top bar ── */
+  .edit-topbar {
+    display:flex; align-items:center; gap:13px;
+    margin-bottom:32px; animation:fadeUp .5s ease both;
+  }
+  .edit-tb-ico {
+    width:46px; height:46px; border-radius:13px;
+    background:linear-gradient(135deg,#00a87e,#00c896);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1.15rem;
+    box-shadow:0 0 22px rgba(0,200,150,.28);
+  }
+  .edit-tb-title { font-family:var(--font-h); font-size:1.35rem; font-weight:800; color:var(--white); letter-spacing:-.4px; }
+  .edit-tb-sub   { font-family:var(--font-b); font-size:.8rem; color:var(--muted); margin-top:2px; }
+
+  /* ── Django messages ── */
+  .toast-msg {
+    display:flex; align-items:center; gap:10px;
+    padding:12px 16px; border-radius:10px; margin-bottom:18px;
+    font-family:var(--font-b); font-size:.84rem; font-weight:600;
+    animation:fadeUp .4s ease both;
+  }
+  .toast-msg.success { background:rgba(0,200,150,.09); border:1px solid rgba(0,200,150,.22); color:var(--green); }
+  .toast-msg.error   { background:rgba(239,68,68,.09);  border:1px solid rgba(239,68,68,.22);  color:#f87171; }
+
+  /* ── Form card ── */
+  .edit-card {
+    background:rgba(5,14,10,.75); border:1px solid rgba(0,200,150,.12);
+    border-radius:24px; padding:38px;
+    animation:fadeUp .5s .05s ease both;
+    position:relative; overflow:hidden;
+  }
+  .edit-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,#00a87e,#00c896,#00f0b0);
+  }
+
+  /* ── Identity row ── */
+  .ident-row {
+    display:flex; align-items:center; gap:16px;
+    padding:16px 18px; border-radius:14px;
+    background:rgba(0,200,150,.04); border:1px solid rgba(0,200,150,.08);
+    margin-bottom:30px;
+  }
+  .ident-av {
+    width:62px; height:62px; border-radius:16px; flex-shrink:0;
+    background:rgba(0,168,126,.2); overflow:hidden;
+    border:2px solid rgba(0,200,150,.2);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--green); font-size:1.8rem;
+    box-shadow:0 4px 16px rgba(0,0,0,.3);
+    transition: border-color .2s;
+  }
+  .ident-av img { width:100%; height:100%; object-fit:cover; }
+  .ident-name { font-family:var(--font-h); font-size:1rem; font-weight:800; color:var(--white); }
+  .ident-role {
+    font-family:var(--font-b); font-size:.68rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:.1em;
+    color:var(--green); margin-top:3px;
+  }
+  .ident-user { font-family:var(--font-b); font-size:.75rem; color:var(--muted); margin-top:2px; }
+
+  /* ── Section divider ── */
+  .form-sec {
+    font-family:var(--font-b); font-size:.62rem; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--green);
+    display:flex; align-items:center; gap:9px;
+    margin:0 0 16px;
+  }
+  .form-sec::after { content:''; flex:1; height:1px; background:rgba(0,200,150,.1); }
+  .form-sec + .form-sec { margin-top:28px; }
+
+  /* ── Field grid ── */
+  .form-grid   { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:4px; }
+  .form-grid.single { grid-template-columns:1fr; }
+  @media(max-width:620px){ .form-grid { grid-template-columns:1fr; } }
+
+  /* ── Individual field ── */
+  .fld { display:flex; flex-direction:column; gap:6px; }
+
+  .fld label {
+    font-family:var(--font-b); font-size:.73rem; font-weight:700;
+    color:var(--muted); letter-spacing:.04em;
+    display:flex; align-items:center; gap:5px;
+  }
+  .req { color:var(--green); font-size:.85rem; line-height:1; }
+
+  /* Input wrapper — holds icon + input */
+  .inp-wrap { position:relative; }
+  .inp-wrap .inp-ico {
+    position:absolute; left:13px; top:50%; transform:translateY(-50%);
+    color:var(--muted); font-size:.9rem; pointer-events:none;
+    transition: color .2s;
+  }
+  .inp-wrap input:focus ~ .inp-ico,
+  .inp-wrap input.ok ~ .inp-ico  { color:var(--green); }
+  .inp-wrap input.err ~ .inp-ico { color:#f87171; }
+
+  .inp-wrap input,
+  .plain-input {
+    width:100%; background:rgba(3,11,7,.7);
+    border:1px solid rgba(0,200,150,.12); border-radius:10px;
+    padding:11px 38px 11px 38px;
+    color:var(--white); font-family:var(--font-b); font-size:.88rem; font-weight:500;
+    outline:none; transition:border-color .2s, box-shadow .2s;
+  }
+  /* file inputs don't need left padding */
+  .plain-input { padding:9px 14px; cursor:pointer; color:var(--muted); }
+  .plain-input::file-selector-button {
+    background:rgba(0,200,150,.12); border:1px solid rgba(0,200,150,.2);
+    color:var(--green); border-radius:6px; padding:4px 12px;
+    font-family:var(--font-b); font-size:.74rem; font-weight:700;
+    cursor:pointer; margin-right:10px; transition:all .2s;
+  }
+  .plain-input::file-selector-button:hover { background:rgba(0,200,150,.22); }
+
+  .inp-wrap input:focus { border-color:rgba(0,200,150,.4); box-shadow:0 0 0 3px rgba(0,200,150,.08); }
+  .inp-wrap input.err   { border-color:rgba(239,68,68,.5); box-shadow:0 0 0 3px rgba(239,68,68,.07); animation:errShake .35s ease; }
+  .inp-wrap input.ok    { border-color:rgba(0,200,150,.35); }
+
+  /* Status icon on right of input */
+  .inp-status {
+    position:absolute; right:12px; top:50%; transform:translateY(-50%);
+    font-size:.88rem; opacity:0; transition:opacity .2s;
+  }
+  .inp-wrap input.ok  ~ .inp-status { opacity:1; color:var(--green); }
+  .inp-wrap input.err ~ .inp-status { opacity:1; color:#f87171; }
+
+  /* Error message */
+  .fld-err {
+    display:none; align-items:center; gap:5px;
+    font-family:var(--font-b); font-size:.7rem; color:#f87171;
+  }
+  .fld-err.show { display:flex; }
+  .fld-err i { font-size:.72rem; }
+
+  /* Existing doc link */
+  .existing-doc {
+    display:inline-flex; align-items:center; gap:7px;
+    font-family:var(--font-b); font-size:.76rem; font-weight:700;
+    color:var(--green); text-decoration:none; margin-bottom:8px;
+    opacity:.85; transition:opacity .2s;
+  }
+  .existing-doc:hover { opacity:1; }
+  .file-hint { font-family:var(--font-b); font-size:.68rem; color:var(--muted); margin-top:4px; }
+
+  /* ── Buttons ── */
+  .form-actions {
+    display:flex; justify-content:flex-end; align-items:center; gap:12px;
+    margin-top:32px; padding-top:24px;
+    border-top:1px solid rgba(0,200,150,.08);
+    flex-wrap:wrap;
+  }
+  .btn-cancel {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:10px 22px; border-radius:10px; text-decoration:none;
+    background:rgba(237,255,248,.04); border:1px solid rgba(0,200,150,.12);
+    color:var(--muted); font-family:var(--font-b); font-size:.86rem; font-weight:700;
+    transition:all .22s;
+  }
+  .btn-cancel:hover { background:rgba(237,255,248,.08); color:var(--white); border-color:rgba(0,200,150,.24); }
+  .btn-save {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:10px 28px; border-radius:10px; cursor:pointer;
+    background:linear-gradient(135deg,#00a87e,#00c896);
+    border:none; color:#fff; font-family:var(--font-b); font-size:.86rem; font-weight:700;
+    box-shadow:0 4px 18px rgba(0,200,150,.28);
+    transition:all .22s;
+  }
+  .btn-save:hover { transform:translateY(-2px); box-shadow:0 8px 26px rgba(0,200,150,.42); }
+  .btn-save:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+
+  @media(max-width:768px){ .edit-page { padding:100px 20px 60px; } .edit-card { padding:24px; } }
+</style>
+
+<div class="edit-page">
+
+  <!-- Top bar -->
+  <div class="edit-topbar">
+    <div class="edit-tb-ico"><i class="bi bi-pencil-fill"></i></div>
+    <div>
+      <div class="edit-tb-title">Edit Profile</div>
+      <div class="edit-tb-sub">Update your authority officer information</div>
+    </div>
+  </div>
+
+  <!-- Django messages -->
+  {% for message in messages %}
+    <div class="toast-msg {{ message.tags }}">
+      <i class="bi bi-{% if message.tags == 'error' %}exclamation-circle-fill{% else %}check-circle-fill{% endif %}"></i>
+      {{ message }}
+    </div>
+  {% endfor %}
+
+  <form method="POST" enctype="multipart/form-data" id="editForm" novalidate>
+    {% csrf_token %}
+    <div class="edit-card">
+
+      <!-- Identity preview row -->
+      <div class="ident-row">
+        <div class="ident-av" id="avatarBox">
+          {% if authority.photo1 %}
+            <img src="{{ authority.photo1.url }}" id="avatarImg" alt="{{ authority.name }}">
+          {% else %}
+            <i class="bi bi-person-fill" id="avatarPlaceholder"></i>
+          {% endif %}
+        </div>
+        <div>
+          <div class="ident-name" id="previewName">{{ authority.name }}</div>
+          <div class="ident-role">Authority Officer</div>
+          <div class="ident-user">@{{ authority.USER.username }}</div>
+        </div>
+      </div>
+
+      <!-- Personal Info -->
+      <div class="form-sec"><i class="bi bi-person-fill"></i> Personal Information</div>
+      <div class="form-grid">
+
+        <!-- Name -->
+        <div class="fld">
+          <label for="name">Full Name <span class="req">*</span></label>
+          <div class="inp-wrap">
+            <input type="text" id="name" name="name"
+                   value="{{ authority.name }}"
+                   placeholder="Alphabets and spaces only"
+                   autocomplete="off">
+            <i class="bi bi-person inp-ico"></i>
+            <i class="bi bi-check-lg inp-status" id="st-name"></i>
+          </div>
+          <div class="fld-err" id="err-name"><i class="bi bi-x-circle-fill"></i><span></span></div>
+        </div>
+
+        <!-- Email -->
+        <div class="fld">
+          <label for="email">Email Address <span class="req">*</span></label>
+          <div class="inp-wrap">
+            <input type="email" id="email" name="email"
+                   value="{{ authority.email }}"
+                   placeholder="example@email.com"
+                   autocomplete="off">
+            <i class="bi bi-envelope inp-ico"></i>
+            <i class="bi bi-check-lg inp-status" id="st-email"></i>
+          </div>
+          <div class="fld-err" id="err-email"><i class="bi bi-x-circle-fill"></i><span></span></div>
+        </div>
+
+        <!-- Phone -->
+        <div class="fld">
+          <label for="phone">Phone Number <span class="req">*</span></label>
+          <div class="inp-wrap">
+            <input type="text" id="phone" name="phone"
+                   value="{{ authority.phone }}"
+                   placeholder="10-digit number"
+                   maxlength="10"
+                   inputmode="numeric"
+                   autocomplete="off">
+            <i class="bi bi-telephone inp-ico"></i>
+            <i class="bi bi-check-lg inp-status" id="st-phone"></i>
+          </div>
+          <div class="fld-err" id="err-phone"><i class="bi bi-x-circle-fill"></i><span></span></div>
+        </div>
+
+        <!-- Place -->
+        <div class="fld">
+          <label for="place">Place / Location <span class="req">*</span></label>
+          <div class="inp-wrap">
+            <input type="text" id="place" name="place"
+                   value="{{ authority.place }}"
+                   placeholder="City or area"
+                   autocomplete="off">
+            <i class="bi bi-geo-alt inp-ico"></i>
+            <i class="bi bi-check-lg inp-status" id="st-place"></i>
+          </div>
+          <div class="fld-err" id="err-place"><i class="bi bi-x-circle-fill"></i><span></span></div>
+        </div>
+
+      </div>
+
+      <!-- Documents -->
+      <div class="form-sec" style="margin-top:28px;"><i class="bi bi-file-earmark-fill"></i> Documents</div>
+      <div class="form-grid single">
+
+        <!-- License proof -->
+        <div class="fld">
+          <label>License Proof</label>
+          {% if authority.license_proof %}
+            <a href="{{ authority.license_proof.url }}" target="_blank" class="existing-doc">
+              <i class="bi bi-file-earmark-check-fill"></i> Current: View License
+              <i class="bi bi-box-arrow-up-right" style="font-size:.7rem;opacity:.6;"></i>
+            </a>
+          {% endif %}
+          <input type="file" name="license_proof" id="license_proof"
+                 accept=".pdf,.jpg,.jpeg,.png"
+                 class="plain-input">
+          <div class="file-hint"><i class="bi bi-info-circle" style="margin-right:4px;"></i>Leave empty to keep current</div>
+        </div>
+
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <a href="{% url 'authority_profile' %}" class="btn-cancel">
+          <i class="bi bi-x-lg"></i> Cancel
+        </a>
+        <button type="submit" class="btn-save" id="saveBtn">
+          <i class="bi bi-check-lg"></i> Save Changes
+        </button>
+      </div>
+
+    </div>
+  </form>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// Validation rules
+// ─────────────────────────────────────────────
+const RULES = {
+  name: {
+    validate: v => {
+      if (!v.trim())           return 'Full name is required';
+      if (!/^[A-Za-z\s]+$/.test(v.trim())) return 'Name must contain alphabets and spaces only';
+      if (v.trim().length < 2) return 'Name must be at least 2 characters';
+      return null;
+    }
+  },
+  email: {
+    validate: v => {
+      if (!v.trim())            return 'Email address is required';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim())) return 'Enter a valid email address';
+      return null;
+    }
+  },
+  phone: {
+    validate: v => {
+      if (!v)               return 'Phone number is required';
+      if (!/^\d{10}$/.test(v)) return 'Phone number must be exactly 10 digits';
+      return null;
+    }
+  },
+  place: {
+    validate: v => {
+      if (!v.trim()) return 'Place / location is required';
+      return null;
+    }
+  }
+};
+
+// ─────────────────────────────────────────────
+// Show / clear error
+// ─────────────────────────────────────────────
+function showErr(id, msg) {
+  const inp = document.getElementById(id);
+  const err = document.getElementById('err-' + id);
+  if (!inp || !err) return;
+  inp.classList.add('err'); inp.classList.remove('ok');
+  err.querySelector('span').textContent = msg;
+  err.classList.add('show');
+}
+function clearErr(id) {
+  const inp = document.getElementById(id);
+  const err = document.getElementById('err-' + id);
+  if (!inp || !err) return;
+  inp.classList.remove('err'); inp.classList.add('ok');
+  err.classList.remove('show');
+}
+
+// ─────────────────────────────────────────────
+// Validate single field — returns true if valid
+// ─────────────────────────────────────────────
+function validateField(id) {
+  const inp = document.getElementById(id);
+  if (!inp) return true;
+  const msg = RULES[id].validate(inp.value);
+  if (msg) { showErr(id, msg); return false; }
+  clearErr(id);
+  return true;
+}
+
+// ─────────────────────────────────────────────
+// Live validation on blur
+// ─────────────────────────────────────────────
+['name','email','phone','place'].forEach(id => {
+  const inp = document.getElementById(id);
+  if (!inp) return;
+
+  inp.addEventListener('blur', () => validateField(id));
+
+  // Strip non-digits from phone on input
+  if (id === 'phone') {
+    inp.addEventListener('input', function () {
+      this.value = this.value.replace(/\D/g, '').slice(0, 10);
+    });
+  }
+
+  // Live name preview
+  if (id === 'name') {
+    inp.addEventListener('input', function () {
+      const preview = document.getElementById('previewName');
+      if (preview) preview.textContent = this.value || '{{ authority.name }}';
+    });
+  }
+});
+
+// ─────────────────────────────────────────────
+// Submit — validate all fields
+// ─────────────────────────────────────────────
+document.getElementById('editForm').addEventListener('submit', function (e) {
+  const fields = ['name','email','phone','place'];
+  const results = fields.map(id => validateField(id));
+  const allValid = results.every(Boolean);
+
+  if (!allValid) {
+    e.preventDefault();
+    // Scroll to first error
+    const firstErr = document.querySelector('.inp-wrap input.err');
+    if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' });
+  }
+});
+</script>
+
+{% include 'authority_footer.html' %}
+</body>
+</html>

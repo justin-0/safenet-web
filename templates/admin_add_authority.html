@@ -1,0 +1,423 @@
+{% extends 'admin_sidebar.html' %}
+{% block page_title %}Add Authority{% endblock %}
+
+{% block content %}
+<style>
+  .page-wrap { padding: 32px 36px; max-width: 860px; margin: 0 auto; }
+
+  /* ── Page header ── */
+  .page-hdr { display:flex; align-items:center; gap:14px; margin-bottom:32px; animation: fadeUp 0.5s ease both; }
+  .page-hdr-ico {
+    width:48px; height:48px; border-radius:13px; flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1.2rem;
+    box-shadow: 0 0 20px rgba(0,212,255,0.25);
+  }
+  .page-hdr-title { font-family:var(--font-h); font-size:1.45rem; font-weight:800; color:var(--text); letter-spacing:-0.4px; }
+  .page-hdr-sub   { font-family:var(--font-b); font-size:0.82rem; color:var(--muted); margin-top:2px; }
+
+  /* ── Messages ── */
+  .msg { display:flex; align-items:center; gap:10px; padding:12px 16px; border-radius:10px; margin-bottom:20px; font-family:var(--font-b); font-size:0.85rem; font-weight:600; }
+  .msg.error   { background:rgba(255,60,80,0.1);  border:1px solid rgba(255,60,80,0.25);  color:#ff6b80; }
+  .msg.success { background:rgba(0,240,200,0.09); border:1px solid rgba(0,240,200,0.22); color:var(--accent3); }
+
+  /* ── Card ── */
+  .form-card {
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:18px; padding:36px 36px;
+    animation: fadeUp 0.5s 0.08s ease both;
+    position:relative; overflow:hidden;
+  }
+  .form-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,var(--accent2),var(--accent),var(--accent3));
+  }
+
+  /* ── Section label ── */
+  .form-sec {
+    font-family:var(--font-b); font-size:0.62rem; font-weight:700;
+    letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--accent3); margin:28px 0 14px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .form-sec::after { content:''; flex:1; height:1px; background:rgba(0,240,200,0.1); }
+  .form-sec:first-of-type { margin-top:0; }
+
+  /* ── Grid ── */
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .form-grid.cols-1 { grid-template-columns:1fr; }
+  @media(max-width:640px){ .form-grid { grid-template-columns:1fr; } }
+
+  /* ── Field ── */
+  .field { display:flex; flex-direction:column; gap:6px; }
+  .field label {
+    font-family:var(--font-b); font-size:0.75rem; font-weight:700;
+    color:var(--muted); letter-spacing:0.04em;
+    display:flex; align-items:center; gap:5px;
+  }
+  .field label .req { color:var(--accent); font-size:0.8rem; }
+
+  .field input, .field select {
+    background:rgba(3,11,24,0.6);
+    border:1px solid rgba(0,212,255,0.12);
+    border-radius:10px; padding:11px 14px;
+    color:var(--text); font-family:var(--font-b); font-size:0.88rem; font-weight:500;
+    outline:none; transition:border-color 0.2s, box-shadow 0.2s;
+    width:100%;
+  }
+  .field input:focus, .field select:focus {
+    border-color:rgba(0,212,255,0.45);
+    box-shadow:0 0 0 3px rgba(0,212,255,0.08);
+  }
+  .field input.err { border-color:rgba(255,60,80,0.5); }
+  .field input.ok  { border-color:rgba(0,240,200,0.4); }
+
+  /* File input */
+  .field input[type="file"] {
+    padding:8px 12px; cursor:pointer;
+    color:var(--muted);
+  }
+  .field input[type="file"]::file-selector-button {
+    background:rgba(0,87,255,0.15); border:1px solid rgba(0,212,255,0.2);
+    color:var(--accent); border-radius:6px; padding:4px 12px;
+    font-family:var(--font-b); font-size:0.75rem; font-weight:700;
+    cursor:pointer; margin-right:10px; transition:all 0.2s;
+  }
+  .field input[type="file"]::file-selector-button:hover {
+    background:rgba(0,87,255,0.28);
+  }
+
+  /* Password wrapper */
+  .pwd-wrap { position:relative; }
+  .pwd-wrap input { padding-right:42px; }
+  .pwd-eye {
+    position:absolute; right:12px; top:50%; transform:translateY(-50%);
+    color:var(--muted); cursor:pointer; font-size:1rem;
+    transition:color 0.2s;
+  }
+  .pwd-eye:hover { color:var(--accent); }
+
+  /* Strength bar */
+  .pwd-strength { height:3px; border-radius:2px; margin-top:5px; background:rgba(238,244,255,0.06); overflow:hidden; }
+  .pwd-strength-fill { height:100%; border-radius:2px; width:0; transition:width 0.3s, background 0.3s; }
+
+  /* Error hint */
+  .field-err {
+    font-family:var(--font-b); font-size:0.7rem; color:#ff6b80;
+    display:none; align-items:center; gap:4px; margin-top:2px;
+  }
+  .field-err.show { display:flex; }
+
+  /* Photo preview */
+  .photo-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  @media(max-width:640px){ .photo-row { grid-template-columns:1fr; } }
+  .photo-field { display:flex; flex-direction:column; gap:6px; }
+  .photo-preview {
+    width:100%; height:100px; border-radius:10px;
+    background:rgba(3,11,24,0.6); border:1px dashed rgba(0,212,255,0.18);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--muted); font-size:1.5rem; overflow:hidden;
+    transition:border-color 0.2s;
+  }
+  .photo-preview img { width:100%; height:100%; object-fit:cover; display:none; }
+
+  /* Submit btn */
+  .submit-row { display:flex; justify-content:flex-end; gap:12px; margin-top:32px; }
+  .btn-reset {
+    padding:11px 24px; border-radius:10px; cursor:pointer;
+    background:rgba(238,244,255,0.04); border:1px solid var(--border);
+    color:var(--muted); font-family:var(--font-b); font-size:0.88rem; font-weight:700;
+    transition:all 0.2s;
+  }
+  .btn-reset:hover { background:rgba(238,244,255,0.08); color:var(--text); }
+  .btn-submit {
+    padding:11px 32px; border-radius:10px; cursor:pointer;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    border:none; color:#fff; font-family:var(--font-b); font-size:0.88rem; font-weight:700;
+    box-shadow:0 4px 18px rgba(0,87,255,0.3);
+    display:flex; align-items:center; gap:8px;
+    transition:all 0.2s;
+  }
+  .btn-submit:hover { box-shadow:0 6px 24px rgba(0,87,255,0.45); transform:translateY(-1px); }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+</style>
+
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="page-hdr">
+    <div class="page-hdr-ico"><i class="bi bi-person-plus-fill"></i></div>
+    <div>
+      <div class="page-hdr-title">Add Authority</div>
+      <div class="page-hdr-sub">Register a new authority officer to the SafeNet AI system</div>
+    </div>
+  </div>
+
+  <!-- Django messages -->
+  {% for message in messages %}
+    <div class="msg {{ message.tags }}">
+      <i class="bi bi-{% if message.tags == 'error' %}exclamation-circle-fill{% else %}check-circle-fill{% endif %}"></i>
+      {{ message }}
+    </div>
+  {% endfor %}
+
+  <form method="POST" enctype="multipart/form-data" id="authorityForm" novalidate>
+    {% csrf_token %}
+    <div class="form-card">
+
+      <!-- Account -->
+      <div class="form-sec"><i class="bi bi-person-fill"></i> Account Credentials</div>
+      <div class="form-grid">
+
+        <div class="field">
+          <label>Username <span class="req">*</span></label>
+          <input type="text" name="username" id="username" placeholder="e.g. authority_john" autocomplete="off">
+          <div class="field-err" id="err-username"><i class="bi bi-x-circle-fill"></i><span></span></div>
+        </div>
+
+        <div class="field">
+          <label>Password <span class="req">*</span></label>
+          <div class="pwd-wrap">
+            <input type="password" name="password" id="password" placeholder="Min. 6 characters">
+            <i class="bi bi-eye pwd-eye" id="togglePwd" onclick="togglePwd()"></i>
+          </div>
+          <div class="pwd-strength"><div class="pwd-strength-fill" id="strengthFill"></div></div>
+          <div class="field-err" id="err-password"><i class="bi bi-x-circle-fill"></i><span></span></div>
+        </div>
+
+      </div>
+
+      <!-- Personal Info -->
+      <div class="form-sec"><i class="bi bi-card-list"></i> Personal Information</div>
+      <div class="form-grid">
+
+        <div class="field">
+          <label>Full Name <span class="req">*</span></label>
+          <input type="text" name="name" id="name" placeholder="Alphabets and spaces only">
+          <div class="field-err" id="err-name"><i class="bi bi-x-circle-fill"></i><span></span></div>
+        </div>
+
+        <div class="field">
+          <label>Email Address <span class="req">*</span></label>
+          <input type="email" name="email" id="email" placeholder="example@email.com">
+          <div class="field-err" id="err-email"><i class="bi bi-x-circle-fill"></i><span></span></div>
+        </div>
+
+        <div class="field">
+          <label>Phone Number <span class="req">*</span></label>
+          <input type="text" name="phone" id="phone" placeholder="10-digit number" maxlength="10">
+          <div class="field-err" id="err-phone"><i class="bi bi-x-circle-fill"></i><span></span></div>
+        </div>
+
+        <div class="field">
+          <label>Place / Location <span class="req">*</span></label>
+          <input type="text" name="place" id="place" placeholder="City or area">
+          <div class="field-err" id="err-place"><i class="bi bi-x-circle-fill"></i><span></span></div>
+        </div>
+
+      </div>
+
+      <!-- Documents -->
+      <div class="form-sec"><i class="bi bi-file-earmark-lock2-fill"></i> Documents</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>License Proof <span class="req">*</span></label>
+          <input type="file" name="license_proof" id="license_proof" accept=".pdf,.jpg,.jpeg,.png">
+          <div class="field-err" id="err-license"><i class="bi bi-x-circle-fill"></i><span></span></div>
+        </div>
+      </div>
+
+      <!-- Photos -->
+      <div class="form-sec"><i class="bi bi-camera-fill"></i> Photos <span style="color:var(--muted);font-weight:400;font-size:0.7rem;text-transform:none;letter-spacing:0;">(for face recognition training)</span></div>
+      <div class="photo-row">
+
+        <div class="photo-field">
+          <label style="font-family:var(--font-b);font-size:0.75rem;font-weight:700;color:var(--muted);">Profile Photo <span style="color:var(--accent);">*</span></label>
+          <div class="photo-preview" id="prev1"><i class="bi bi-person-bounding-box"></i><img id="img1"></div>
+          <input type="file" name="photo1" id="photo1" accept="image/*" onchange="previewPhoto(this,'img1','prev1')">
+          <div class="field-err" id="err-photo1"><i class="bi bi-x-circle-fill"></i><span></span></div>
+        </div>
+
+        <div class="photo-field">
+          <label style="font-family:var(--font-b);font-size:0.75rem;font-weight:700;color:var(--muted);">Training Photo 2</label>
+          <div class="photo-preview" id="prev2"><i class="bi bi-camera"></i><img id="img2"></div>
+          <input type="file" name="photo2" id="photo2" accept="image/*" onchange="previewPhoto(this,'img2','prev2')">
+        </div>
+
+        <div class="photo-field">
+          <label style="font-family:var(--font-b);font-size:0.75rem;font-weight:700;color:var(--muted);">Training Photo 3</label>
+          <div class="photo-preview" id="prev3"><i class="bi bi-camera"></i><img id="img3"></div>
+          <input type="file" name="photo3" id="photo3" accept="image/*" onchange="previewPhoto(this,'img3','prev3')">
+        </div>
+
+      </div>
+
+      <!-- Buttons -->
+      <div class="submit-row">
+        <button type="button" class="btn-reset" onclick="resetForm()"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+        <button type="submit" class="btn-submit" id="submitBtn"><i class="bi bi-person-plus-fill"></i> Add Authority</button>
+          <a href="/admin_view_authority/"  class="btn-submit" id="submitBtn"><i class="bi bi-person-plus-fill">View Authority</i></a>
+      </div>
+
+    </div>
+  </form>
+</div>
+
+<script>
+  // ── Toggle password visibility ──
+  function togglePwd() {
+    const inp = document.getElementById('password');
+    const ico = document.getElementById('togglePwd');
+    if (inp.type === 'password') {
+      inp.type = 'text';
+      ico.classList.replace('bi-eye', 'bi-eye-slash');
+    } else {
+      inp.type = 'password';
+      ico.classList.replace('bi-eye-slash', 'bi-eye');
+    }
+  }
+
+  // ── Password strength ──
+  document.getElementById('password').addEventListener('input', function () {
+    const v = this.value;
+    const fill = document.getElementById('strengthFill');
+    let score = 0;
+    if (v.length >= 6) score++;
+    if (v.length >= 10) score++;
+    if (/[A-Z]/.test(v)) score++;
+    if (/[0-9]/.test(v)) score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
+    const colors = ['#ff3c50','#ff8c00','#ffb800','#00d4ff','#00f0c8'];
+    const widths = ['20%','40%','60%','80%','100%'];
+    fill.style.width  = score ? widths[score-1] : '0';
+    fill.style.background = score ? colors[score-1] : 'transparent';
+  });
+
+  // ── Photo preview ──
+  function previewPhoto(input, imgId, wrapId) {
+    const wrap = document.getElementById(wrapId);
+    const img  = document.getElementById(imgId);
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        img.src = e.target.result;
+        img.style.display = 'block';
+        wrap.querySelector('i') && (wrap.querySelector('i').style.display = 'none');
+        wrap.style.border = '1px solid rgba(0,240,200,0.3)';
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  // ── Show / hide error ──
+  function showErr(id, msg) {
+    const el = document.getElementById('err-' + id);
+    if (!el) return;
+    el.querySelector('span').textContent = msg;
+    el.classList.add('show');
+    const inp = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
+    if (inp && inp.tagName === 'INPUT') inp.classList.add('err');
+  }
+  function clearErr(id) {
+    const el = document.getElementById('err-' + id);
+    if (!el) return;
+    el.classList.remove('show');
+    const inp = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
+    if (inp && inp.tagName === 'INPUT') { inp.classList.remove('err'); inp.classList.add('ok'); }
+  }
+
+  // ── Live validation ──
+  document.getElementById('username').addEventListener('blur', function () {
+    this.value.trim() ? clearErr('username') : showErr('username', 'Username is required');
+  });
+  document.getElementById('password').addEventListener('blur', function () {
+    if (!this.value) return showErr('password', 'Password is required');
+    if (this.value.length < 6) return showErr('password', 'Password must be at least 6 characters');
+    clearErr('password');
+  });
+  document.getElementById('name').addEventListener('blur', function () {
+    if (!this.value.trim()) return showErr('name', 'Name is required');
+    if (!/^[A-Za-z\s]+$/.test(this.value.trim())) return showErr('name', 'Name must contain alphabets and spaces only');
+    clearErr('name');
+  });
+  document.getElementById('email').addEventListener('blur', function () {
+    if (!this.value.trim()) return showErr('email', 'Email is required');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.value.trim())) return showErr('email', 'Enter a valid email address');
+    clearErr('email');
+  });
+  document.getElementById('phone').addEventListener('input', function () {
+    this.value = this.value.replace(/\D/g, '');
+  });
+  document.getElementById('phone').addEventListener('blur', function () {
+    if (!this.value) return showErr('phone', 'Phone number is required');
+    if (!/^\d{10}$/.test(this.value)) return showErr('phone', 'Phone number must be exactly 10 digits');
+    clearErr('phone');
+  });
+  document.getElementById('place').addEventListener('blur', function () {
+    this.value.trim() ? clearErr('place') : showErr('place', 'Place is required');
+  });
+
+  // ── Form submit validation ──
+  document.getElementById('authorityForm').addEventListener('submit', function (e) {
+    let valid = true;
+
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const name     = document.getElementById('name').value.trim();
+    const email    = document.getElementById('email').value.trim();
+    const phone    = document.getElementById('phone').value;
+    const place    = document.getElementById('place').value.trim();
+    const license  = document.getElementById('license_proof').files;
+    const photo1   = document.getElementById('photo1').files;
+
+    if (!username) { showErr('username','Username is required'); valid=false; }
+    else clearErr('username');
+
+    if (!password) { showErr('password','Password is required'); valid=false; }
+    else if (password.length < 6) { showErr('password','Password must be at least 6 characters'); valid=false; }
+    else clearErr('password');
+
+    if (!name) { showErr('name','Name is required'); valid=false; }
+    else if (!/^[A-Za-z\s]+$/.test(name)) { showErr('name','Name must contain alphabets and spaces only'); valid=false; }
+    else clearErr('name');
+
+    if (!email) { showErr('email','Email is required'); valid=false; }
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('email','Enter a valid email address'); valid=false; }
+    else clearErr('email');
+
+    if (!phone) { showErr('phone','Phone number is required'); valid=false; }
+    else if (!/^\d{10}$/.test(phone)) { showErr('phone','Phone number must be exactly 10 digits'); valid=false; }
+    else clearErr('phone');
+
+    if (!place) { showErr('place','Place is required'); valid=false; }
+    else clearErr('place');
+
+    if (!license.length) { showErr('license','License proof is required'); valid=false; }
+    if (!photo1.length)  { showErr('photo1','Profile photo is required'); valid=false; }
+
+    if (!valid) e.preventDefault();
+  });
+
+  // ── Reset ──
+  function resetForm() {
+    document.getElementById('authorityForm').reset();
+    document.querySelectorAll('.field-err').forEach(e => e.classList.remove('show'));
+    document.querySelectorAll('input').forEach(e => { e.classList.remove('err','ok'); });
+    ['img1','img2','img3'].forEach(id => {
+      const img = document.getElementById(id);
+      if (img) { img.style.display='none'; img.src=''; }
+    });
+    ['prev1','prev2','prev3'].forEach(id => {
+      const wrap = document.getElementById(id);
+      if (wrap) { wrap.style.border=''; const ico=wrap.querySelector('i'); if(ico) ico.style.display=''; }
+    });
+    document.getElementById('strengthFill').style.width='0';
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,325 @@
+{% include 'authority_header.html' %}
+
+<style>
+  @keyframes fadeUp   { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes pulseDot { 0%,100% { box-shadow:0 0 0 3px rgba(0,200,150,.3); } 50% { box-shadow:0 0 0 7px rgba(0,200,150,.06); } }
+
+  .res-page { padding: 110px 64px 80px; max-width: 1200px; margin: 0 auto; }
+
+  /* ── Top bar ── */
+  .res-topbar {
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:14px; margin-bottom:24px;
+    animation:fadeUp .5s ease both;
+  }
+  .res-topbar-left { display:flex; align-items:center; gap:13px; }
+  .res-tb-ico {
+    width:46px; height:46px; border-radius:13px; flex-shrink:0;
+    background:linear-gradient(135deg,#00a87e,#00c896);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1.15rem;
+    box-shadow:0 0 22px rgba(0,200,150,.28);
+  }
+  .res-tb-title { font-family:var(--font-h); font-size:1.35rem; font-weight:800; color:var(--white); letter-spacing:-.4px; }
+  .res-tb-sub   { font-family:var(--font-b); font-size:.8rem; color:var(--muted); margin-top:2px; }
+
+  .res-topbar-right { display:flex; align-items:center; gap:10px; }
+  .res-count-badge {
+    display:inline-flex; align-items:center; gap:7px;
+    padding:8px 18px; border-radius:100px;
+    background:rgba(0,200,150,.08); border:1px solid rgba(0,200,150,.2);
+    font-family:var(--font-b); font-size:.8rem; font-weight:700;
+    color:var(--green); letter-spacing:.05em;
+  }
+  .btn-back {
+    display:inline-flex; align-items:center; gap:7px;
+    padding:9px 18px; border-radius:10px;
+    background:rgba(0,200,150,.07); border:1px solid rgba(0,200,150,.18);
+    color:var(--green); font-family:var(--font-b); font-size:.8rem; font-weight:700;
+    text-decoration:none; transition:all .2s;
+  }
+  .btn-back:hover { background:rgba(0,200,150,.14); color:var(--green); transform:translateY(-1px); }
+
+  /* ── Filter bar ── */
+  .filter-bar {
+    display:flex; align-items:center; gap:12px; margin-bottom:24px;
+    animation:fadeUp .5s .06s ease both; flex-wrap:wrap;
+  }
+  .search-wrap { position:relative; flex:1; min-width:220px; }
+  .search-wrap i {
+    position:absolute; left:13px; top:50%; transform:translateY(-50%);
+    color:var(--muted); font-size:.95rem; pointer-events:none;
+  }
+  .search-wrap input {
+    width:100%; background:rgba(5,14,10,.75); border:1px solid rgba(0,200,150,.12);
+    border-radius:11px; padding:10px 14px 10px 40px;
+    color:var(--white); font-family:var(--font-b); font-size:.85rem;
+    outline:none; transition:border-color .2s;
+  }
+  .search-wrap input:focus { border-color:rgba(0,200,150,.35); }
+  .search-wrap input::placeholder { color:var(--muted); }
+  .count-pill {
+    font-family:var(--font-b); font-size:.75rem; font-weight:700;
+    padding:6px 14px; border-radius:20px;
+    background:rgba(0,200,150,.08); border:1px solid rgba(0,200,150,.18);
+    color:var(--green); white-space:nowrap;
+  }
+
+  /* ── Grid ── */
+  .res-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+    gap:22px;
+    animation:fadeUp .5s .12s ease both;
+  }
+
+  /* ── Card ── */
+  .res-card {
+    background:rgba(5,14,10,.75); border:1px solid rgba(0,200,150,.12);
+    border-radius:24px; overflow:hidden; position:relative;
+    animation:fadeUp .5s ease both;
+    transition:transform .22s, box-shadow .22s;
+  }
+  .res-card:hover { transform:translateY(-4px); box-shadow:0 16px 48px rgba(0,0,0,.45), 0 0 0 1px rgba(0,200,150,.18); }
+  .res-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,#00a87e,#00c896,#00f0b0);
+  }
+
+  /* Banner */
+  .res-banner {
+    height:90px; position:relative;
+    background:linear-gradient(135deg,rgba(0,168,126,.2),rgba(0,200,150,.08),rgba(0,240,176,.04));
+  }
+  .res-banner-grid {
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(0,200,150,.055) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(0,200,150,.055) 1px,transparent 1px);
+    background-size:22px 22px;
+  }
+  .res-banner-glow {
+    position:absolute; top:-60px; right:-60px;
+    width:240px; height:240px; border-radius:50%;
+    background:radial-gradient(circle,rgba(0,200,150,.12) 0%,transparent 65%);
+    pointer-events:none;
+  }
+
+  /* Avatar (resident) */
+  .res-avatar-anchor { position:absolute; bottom:-40px; left:28px; width:76px; height:76px; }
+  .res-av-ring {
+    width:76px; height:76px; border-radius:18px;
+    border:3px solid rgba(5,14,10,.95); overflow:hidden;
+    background:rgba(0,168,126,.18);
+    box-shadow:0 8px 26px rgba(0,0,0,.45), 0 0 0 1px rgba(0,200,150,.22);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--green); font-size:1.9rem;
+  }
+  .res-av-ring img { width:100%; height:100%; object-fit:cover; }
+
+  /* Status badge */
+  .status-badge {
+    position:absolute; top:12px; right:16px;
+    display:inline-flex; align-items:center; gap:6px;
+    padding:4px 12px; border-radius:100px;
+    font-family:var(--font-b); font-size:.63rem; font-weight:700;
+    letter-spacing:.1em; text-transform:uppercase;
+  }
+  .status-badge.pending   { background:rgba(245,158,11,.1);  border:1px solid rgba(245,158,11,.25);  color:#fbbf24; }
+  .status-badge.accepted  { background:rgba(0,200,150,.1);   border:1px solid rgba(0,200,150,.25);   color:var(--green); }
+  .status-badge.completed { background:rgba(99,102,241,.1);  border:1px solid rgba(99,102,241,.25);  color:#a5b4fc; }
+  .status-badge.rejected  { background:rgba(239,68,68,.1);   border:1px solid rgba(239,68,68,.25);   color:#f87171; }
+  .badge-dot { width:5px; height:5px; border-radius:50%; background:currentColor; }
+
+  /* Body */
+  .res-body { padding:50px 26px 26px; }
+  .res-name {
+    font-family:var(--font-h); font-size:1.05rem; font-weight:800;
+    color:var(--white); letter-spacing:-.3px; margin-bottom:18px;
+  }
+
+  /* Info rows */
+  .res-info-list { display:flex; flex-direction:column; gap:8px; }
+  .res-info-row {
+    display:flex; align-items:center; gap:11px;
+    padding:10px 13px; border-radius:11px;
+    background:rgba(0,200,150,.04); border:1px solid rgba(0,200,150,.08);
+    transition:background .2s, border-color .2s;
+  }
+  .res-info-row:hover { background:rgba(0,200,150,.08); border-color:rgba(0,200,150,.16); }
+  .res-info-ico {
+    width:32px; height:32px; border-radius:9px; flex-shrink:0;
+    background:linear-gradient(135deg,rgba(0,168,126,.22),rgba(0,200,150,.12));
+    color:var(--green); display:flex; align-items:center; justify-content:center; font-size:.8rem;
+  }
+  .res-info-tag { font-family:var(--font-b); font-size:.58rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:2px; }
+  .res-info-val { font-family:var(--font-b); font-size:.82rem; font-weight:600; color:var(--white); word-break:break-all; }
+
+  /* Date footer strip */
+  .res-footer {
+    border-top:1px solid rgba(0,200,150,.08); padding:12px 26px;
+    display:flex; align-items:center; gap:8px;
+    font-family:var(--font-b); font-size:.72rem; color:var(--muted);
+  }
+  .res-footer i { color:var(--green); }
+
+  /* Empty state */
+  .res-empty {
+    grid-column:1/-1;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:80px 20px; gap:14px; text-align:center;
+    animation:fadeUp .5s ease both;
+  }
+  .res-empty-ico {
+    width:72px; height:72px; border-radius:20px;
+    background:rgba(0,200,150,.08); border:1px solid rgba(0,200,150,.14);
+    color:var(--green); display:flex; align-items:center; justify-content:center;
+    font-size:2rem; margin-bottom:6px;
+  }
+  .res-empty-title { font-family:var(--font-h); font-size:1.1rem; font-weight:800; color:var(--white); }
+  .res-empty-sub   { font-family:var(--font-b); font-size:.82rem; color:var(--muted); }
+
+  @media(max-width:768px){ .res-page { padding:100px 20px 60px; } }
+</style>
+
+<div class="res-page">
+
+  <!-- Top bar -->
+  <div class="res-topbar">
+    <div class="res-topbar-left">
+      <div class="res-tb-ico"><i class="bi bi-clock-history"></i></div>
+      <div>
+        <div class="res-tb-title">Request History</div>
+        <div class="res-tb-sub">
+          {% if requests %}
+            {{ requests.0.WORKER.name }} — {{ requests.0.WORKER.category.category_name }}
+          {% else %}
+            Worker request history
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="res-topbar-right">
+      <div class="res-count-badge">
+        <i class="bi bi-list-check"></i>
+        {{ requests|length }} Request{{ requests|length|pluralize }}
+      </div>
+      <a href="{% url 'authority_view_worker' %}" class="btn-back">
+        <i class="bi bi-arrow-left"></i> Back to Workers
+      </a>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <div class="search-wrap">
+      <i class="bi bi-search"></i>
+      <input type="text" id="searchInput" placeholder="Search by resident name or status…" onkeyup="filterCards()">
+    </div>
+    <div class="count-pill" id="countPill">{{ requests|length }} Request{{ requests|length|pluralize }}</div>
+  </div>
+
+  <!-- Cards grid -->
+  <div class="res-grid" id="cardsGrid">
+
+    {% if requests %}
+      {% for req in requests %}
+      <div class="res-card" style="animation-delay:{{ forloop.counter0 }}00ms"
+           data-search="{{ req.RESIDENT.name|lower }} {{ req.status|lower }}">
+
+        <div class="res-banner">
+          <div class="res-banner-grid"></div>
+          <div class="res-banner-glow"></div>
+          <div class="res-avatar-anchor">
+            <div class="res-av-ring">
+              {% if req.RESIDENT.photo1 %}
+                <img src="{{ req.RESIDENT.photo1.url }}" alt="{{ req.RESIDENT.name }}">
+              {% else %}
+                <i class="bi bi-person-fill"></i>
+              {% endif %}
+            </div>
+          </div>
+          <!-- Status badge on banner -->
+          <div class="status-badge {{ req.status }}">
+            <span class="badge-dot"></span>
+            {% if req.status == 'pending' %}Pending
+            {% elif req.status == 'accepted' %}Accepted
+            {% elif req.status == 'completed' %}Completed
+            {% else %}Rejected{% endif %}
+          </div>
+        </div>
+
+        <div class="res-body">
+
+          <div class="res-name">{{ req.RESIDENT.name }}</div>
+
+          <div class="res-info-list">
+            <div class="res-info-row">
+              <div class="res-info-ico"><i class="bi bi-house-fill"></i></div>
+              <div>
+                <div class="res-info-tag">House Number</div>
+                <div class="res-info-val">{{ req.RESIDENT.house_number }}</div>
+              </div>
+            </div>
+            <div class="res-info-row">
+              <div class="res-info-ico"><i class="bi bi-telephone-fill"></i></div>
+              <div>
+                <div class="res-info-tag">Resident Phone</div>
+                <div class="res-info-val">{{ req.RESIDENT.phone }}</div>
+              </div>
+            </div>
+            <div class="res-info-row">
+              <div class="res-info-ico"><i class="bi bi-briefcase-fill"></i></div>
+              <div>
+                <div class="res-info-tag">Worker</div>
+                <div class="res-info-val">{{ req.WORKER.name }}</div>
+              </div>
+            </div>
+            <div class="res-info-row">
+              <div class="res-info-ico"><i class="bi bi-tools"></i></div>
+              <div>
+                <div class="res-info-tag">Category</div>
+                <div class="res-info-val">{{ req.WORKER.category.category_name }}</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="res-footer">
+          <i class="bi bi-calendar-fill"></i>
+          {{ req.date }}
+        </div>
+
+      </div>
+      {% endfor %}
+
+    {% else %}
+      <div class="res-empty">
+        <div class="res-empty-ico"><i class="bi bi-clock-history"></i></div>
+        <div class="res-empty-title">No Requests Found</div>
+        <div class="res-empty-sub">This worker has no request history yet.</div>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<script>
+  function filterCards() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const cards = document.querySelectorAll('.res-card');
+    let visible = 0;
+    cards.forEach(card => {
+      const show = (card.dataset.search || '').includes(q);
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    document.getElementById('countPill').textContent = visible + ' Request' + (visible !== 1 ? 's' : '');
+  }
+</script>
+
+{% include 'authority_footer.html' %}
+
+</body>
+</html>

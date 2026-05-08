@@ -1,0 +1,293 @@
+{% extends 'admin_sidebar.html' %}
+{% block page_title %}Edit Category{% endblock %}
+
+{% block content %}
+<style>
+  .page-wrap { padding: 32px 36px; max-width: 860px; margin: 0 auto; }
+
+  /* ── Page header ── */
+  .page-hdr { display:flex; align-items:center; gap:14px; margin-bottom:32px; animation: fadeUp 0.5s ease both; }
+  .page-hdr-ico {
+    width:48px; height:48px; border-radius:13px; flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1.2rem;
+    box-shadow: 0 0 20px rgba(0,212,255,0.25);
+  }
+  .page-hdr-title { font-family:var(--font-h); font-size:1.45rem; font-weight:800; color:var(--text); letter-spacing:-0.4px; }
+  .page-hdr-sub   { font-family:var(--font-b); font-size:0.82rem; color:var(--muted); margin-top:2px; }
+
+  /* breadcrumb */
+  .breadcrumb {
+    display:flex; align-items:center; gap:8px;
+    font-family:var(--font-b); font-size:0.78rem; font-weight:600;
+    color:var(--muted); margin-bottom:28px;
+    animation: fadeUp 0.5s 0.04s ease both;
+  }
+  .breadcrumb a { color:var(--muted); text-decoration:none; transition:color 0.2s; }
+  .breadcrumb a:hover { color:var(--accent); }
+  .breadcrumb .sep { color:rgba(238,244,255,0.15); }
+  .breadcrumb .cur { color:var(--accent); }
+
+  /* ── Messages ── */
+  .msg { display:flex; align-items:center; gap:10px; padding:12px 16px; border-radius:10px; margin-bottom:20px; font-family:var(--font-b); font-size:0.85rem; font-weight:600; }
+  .msg.error   { background:rgba(255,60,80,0.1);  border:1px solid rgba(255,60,80,0.25);  color:#ff6b80; }
+  .msg.success { background:rgba(0,240,200,0.09); border:1px solid rgba(0,240,200,0.22); color:var(--accent3); }
+
+  /* ── Card ── */
+  .form-card {
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:18px; padding:36px 36px;
+    animation: fadeUp 0.5s 0.08s ease both;
+    position:relative; overflow:hidden;
+  }
+  .form-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,var(--accent2),var(--accent),var(--accent3));
+  }
+
+  /* Current value badge */
+  .current-val {
+    display:inline-flex; align-items:center; gap:8px;
+    background:rgba(0,212,255,0.05); border:1px solid rgba(0,212,255,0.14);
+    border-radius:10px; padding:10px 16px; margin-bottom:24px;
+    font-family:var(--font-b); font-size:0.83rem; color:var(--muted);
+  }
+  .current-val strong { color:var(--accent); font-weight:700; }
+
+  /* ── Section label ── */
+  .form-sec {
+    font-family:var(--font-b); font-size:0.62rem; font-weight:700;
+    letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--accent3); margin:0 0 16px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .form-sec::after { content:''; flex:1; height:1px; background:rgba(0,240,200,0.1); }
+
+  /* ── Field ── */
+  .field { display:flex; flex-direction:column; gap:6px; margin-bottom:22px; }
+  .field label {
+    font-family:var(--font-b); font-size:0.75rem; font-weight:700;
+    color:var(--muted); letter-spacing:0.04em;
+    display:flex; align-items:center; gap:5px;
+  }
+  .field label .req { color:var(--accent); font-size:0.8rem; }
+  .field input {
+    background:rgba(3,11,24,0.6);
+    border:1px solid rgba(0,212,255,0.12);
+    border-radius:10px; padding:11px 14px;
+    color:var(--text); font-family:var(--font-b); font-size:0.88rem; font-weight:500;
+    outline:none; transition:border-color 0.2s, box-shadow 0.2s;
+    width:100%;
+  }
+  .field input:focus {
+    border-color:rgba(0,212,255,0.45);
+    box-shadow:0 0 0 3px rgba(0,212,255,0.08);
+  }
+  .field input.err { border-color:rgba(255,60,80,0.5); }
+  .field input.ok  { border-color:rgba(0,240,200,0.4); }
+  .field-hint {
+    font-family:var(--font-b); font-size:0.72rem; color:rgba(238,244,255,0.22);
+    margin-top:2px;
+  }
+  .field-err {
+    font-family:var(--font-b); font-size:0.7rem; color:#ff6b80;
+    display:none; align-items:center; gap:4px; margin-top:2px;
+  }
+  .field-err.show { display:flex; }
+
+  /* Change indicator */
+  .change-indicator {
+    display:none; align-items:center; gap:6px;
+    font-family:var(--font-b); font-size:0.72rem; font-weight:700;
+    color:var(--accent3); margin-top:5px;
+  }
+  .change-indicator.show { display:flex; }
+  .change-arrow { color:var(--muted); }
+
+  /* ── Buttons ── */
+  .submit-row { display:flex; justify-content:space-between; gap:12px; margin-top:8px; align-items:center; }
+  .submit-row-right { display:flex; gap:12px; }
+
+  .btn-back {
+    display:inline-flex; align-items:center; gap:7px;
+    padding:11px 20px; border-radius:10px; cursor:pointer;
+    background:rgba(238,244,255,0.04); border:1px solid var(--border);
+    color:var(--muted); font-family:var(--font-b); font-size:0.88rem; font-weight:700;
+    text-decoration:none; transition:all 0.2s;
+  }
+  .btn-back:hover { background:rgba(238,244,255,0.08); color:var(--text); }
+
+  .btn-reset {
+    padding:11px 24px; border-radius:10px; cursor:pointer;
+    background:rgba(238,244,255,0.04); border:1px solid var(--border);
+    color:var(--muted); font-family:var(--font-b); font-size:0.88rem; font-weight:700;
+    transition:all 0.2s;
+  }
+  .btn-reset:hover { background:rgba(238,244,255,0.08); color:var(--text); }
+
+  .btn-submit {
+    padding:11px 32px; border-radius:10px; cursor:pointer;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    border:none; color:#fff; font-family:var(--font-b); font-size:0.88rem; font-weight:700;
+    box-shadow:0 4px 18px rgba(0,87,255,0.3);
+    display:flex; align-items:center; gap:8px;
+    transition:all 0.2s;
+  }
+  .btn-submit:hover { box-shadow:0 6px 24px rgba(0,87,255,0.45); transform:translateY(-1px); }
+  .btn-submit:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+  /* Info strip */
+  .info-strip {
+    display:flex; align-items:center; gap:10px;
+    background:rgba(0,87,255,0.07); border:1px solid rgba(0,87,255,0.14);
+    border-radius:10px; padding:12px 16px; margin-bottom:24px;
+    font-family:var(--font-b); font-size:0.8rem; color:rgba(238,244,255,0.5);
+  }
+  .info-strip i { color:var(--accent); font-size:1rem; flex-shrink:0; }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+</style>
+
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="page-hdr">
+    <div class="page-hdr-ico"><i class="bi bi-pencil-square"></i></div>
+    <div>
+      <div class="page-hdr-title">Edit Category</div>
+      <div class="page-hdr-sub">Update the category details in SafeNet AI</div>
+    </div>
+  </div>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="{% url 'admin_home' %}"><i class="bi bi-grid-fill"></i> Dashboard</a>
+    <span class="sep"><i class="bi bi-chevron-right"></i></span>
+    <a href="{% url 'admin_category' %}">Categories</a>
+    <span class="sep"><i class="bi bi-chevron-right"></i></span>
+    <span class="cur">Edit — {{ category.category_name }}</span>
+  </div>
+
+  <!-- Django messages -->
+  {% for message in messages %}
+    <div class="msg {{ message.tags }}">
+      <i class="bi bi-{% if message.tags == 'error' %}exclamation-circle-fill{% else %}check-circle-fill{% endif %}"></i>
+      {{ message }}
+    </div>
+  {% endfor %}
+
+  <form method="POST" id="editCategoryForm" novalidate>
+    {% csrf_token %}
+    <div class="form-card">
+
+      <!-- Current value -->
+      <div class="current-val">
+        <i class="bi bi-tag-fill" style="color:var(--accent);"></i>
+        Current name: <strong>{{ category.category_name }}</strong>
+      </div>
+
+      <div class="info-strip">
+        <i class="bi bi-info-circle-fill"></i>
+        Editing this category will update it across all associated worker requests and listings.
+      </div>
+
+      <div class="form-sec"><i class="bi bi-pencil-fill"></i> Category Details</div>
+
+      <div class="field">
+        <label>Category Name <span class="req">*</span></label>
+        <input
+          type="text"
+          name="category_name"
+          id="category_name"
+          value="{{ category.category_name }}"
+          placeholder="Enter updated category name"
+          autocomplete="off"
+        >
+        <div class="change-indicator" id="changeIndicator">
+          <span class="change-arrow"><i class="bi bi-arrow-right"></i></span>
+          Changing from <em style="color:var(--accent);">"{{ category.category_name }}"</em> to <em id="newValPreview" style="color:var(--accent3);"></em>
+        </div>
+        <div class="field-err" id="err-category_name"><i class="bi bi-x-circle-fill"></i><span></span></div>
+        <div class="field-hint">Use clear, descriptive names. E.g. Plumbing, Electrical, Cleaning.</div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="submit-row">
+        <a href="{% url 'admin_category' %}" class="btn-back"><i class="bi bi-arrow-left"></i> Back to Categories</a>
+        <div class="submit-row-right">
+          <button type="button" class="btn-reset" onclick="resetField()"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+          <button type="submit" class="btn-submit" id="submitBtn"><i class="bi bi-check2-circle"></i> Save Changes</button>
+        </div>
+      </div>
+
+    </div>
+  </form>
+
+</div>
+
+<script>
+  const originalValue = "{{ category.category_name }}";
+  const input = document.getElementById('category_name');
+  const changeIndicator = document.getElementById('changeIndicator');
+  const newValPreview = document.getElementById('newValPreview');
+  const submitBtn = document.getElementById('submitBtn');
+
+  // Live change indicator
+  input.addEventListener('input', function() {
+    const current = this.value.trim();
+    const err = document.getElementById('err-category_name');
+
+    // Clear error on type
+    if (current) {
+      err.classList.remove('show');
+      this.classList.remove('err');
+    }
+
+    // Show change indicator
+    if (current && current !== originalValue) {
+      newValPreview.textContent = '"' + current + '"';
+      changeIndicator.classList.add('show');
+    } else {
+      changeIndicator.classList.remove('show');
+    }
+  });
+
+  // Form validation
+  document.getElementById('editCategoryForm').addEventListener('submit', function(e) {
+    const val = input.value.trim();
+    const err = document.getElementById('err-category_name');
+
+    if (!val) {
+      err.querySelector('span').textContent = 'Category name is required';
+      err.classList.add('show');
+      input.classList.add('err');
+      e.preventDefault();
+      return;
+    }
+
+    if (val === originalValue) {
+      err.querySelector('span').textContent = 'No changes detected — please update the name to save';
+      err.classList.add('show');
+      input.classList.add('err');
+      e.preventDefault();
+      return;
+    }
+
+    err.classList.remove('show');
+    input.classList.add('ok');
+  });
+
+  // Reset
+  function resetField() {
+    input.value = originalValue;
+    input.classList.remove('err', 'ok');
+    document.getElementById('err-category_name').classList.remove('show');
+    changeIndicator.classList.remove('show');
+  }
+</script>
+{% endblock %}

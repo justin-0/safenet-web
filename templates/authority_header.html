@@ -1,0 +1,423 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Authority{% endblock %} – SafeNet AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Nunito:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  <style>
+    /* ══ AUTHORITY DESIGN TOKENS ══ */
+    :root {
+      --navy:       #020d0a;
+      --deep:       #050f0b;
+      --mid:        #091a13;
+      --card-bg:    rgba(5,14,10,0.75);
+
+      --green:      #00c896;
+      --green-lt:   #00f0b0;
+      --green-dim:  #00a87e;
+      --amber:      #f59e0b;
+      --red-alert:  #ef4444;
+
+      --green-glow: rgba(0,200,150,0.18);
+      --green-ink:  rgba(0,200,150,0.12);
+      --border:     rgba(0,200,150,0.12);
+
+      --white:      #edfff8;
+      --muted:      rgba(180,230,210,0.4);
+
+      --font-h:     'Outfit', sans-serif;
+      --font-b:     'Nunito', sans-serif;
+
+      --radius-sm:  10px;
+      --radius-md:  16px;
+      --radius-lg:  26px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-b);
+      background: var(--navy);
+      color: var(--white);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ══ HEADER ══ */
+    #auth-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 2000;
+      background: transparent;
+      transition: background 0.4s, backdrop-filter 0.4s, box-shadow 0.4s;
+    }
+    #auth-header.scrolled {
+      background: rgba(2,13,10,0.93);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      box-shadow: 0 4px 32px rgba(0,200,150,0.12), 0 1px 0 rgba(0,200,150,0.1);
+    }
+
+    .auth-hdr-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 64px;
+      max-width: 1380px; margin: 0 auto;
+    }
+
+    /* Logo */
+    .auth-logo {
+      display: flex; align-items: center; gap: 12px; text-decoration: none;
+    }
+    .auth-logo-ico {
+      width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+      background: linear-gradient(135deg, #00a87e, #00f0b0);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 1.05rem;
+      box-shadow: 0 0 24px rgba(0,200,150,0.45), 0 0 8px rgba(0,200,150,0.3);
+      position: relative; overflow: hidden;
+    }
+    .auth-logo-ico::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.18), transparent);
+    }
+    .auth-logo-text {
+      font-family: var(--font-h); font-size: 1.45rem; font-weight: 800;
+      color: var(--white); letter-spacing: -0.4px; line-height: 1;
+    }
+    .auth-logo-text span { color: var(--green); }
+    .auth-logo-pill {
+      font-family: var(--font-b); font-size: 0.58rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--green); background: rgba(0,200,150,0.1);
+      border: 1px solid rgba(0,200,150,0.25); border-radius: 4px;
+      padding: 2px 7px; white-space: nowrap;
+    }
+
+    /* Nav */
+    .auth-nav-list {
+      list-style: none; display: flex; align-items: center; gap: 4px;
+    }
+    .auth-nav-list li a {
+      font-family: var(--font-b); font-size: 0.84rem; font-weight: 500;
+      color: rgba(237,255,248,0.6); text-decoration: none;
+      padding: 8px 16px; border-radius: 8px;
+      display: inline-flex; align-items: center; gap: 7px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .auth-nav-list li a:hover,
+    .auth-nav-list li a.active {
+      color: var(--white); background: rgba(0,200,150,0.08);
+    }
+    .auth-nav-list li a.nav-login {
+      border: 1.5px solid rgba(0,200,150,0.22);
+      color: rgba(237,255,248,0.75) !important;
+    }
+    .auth-nav-list li a.nav-login:hover {
+      background: rgba(0,200,150,0.1);
+      border-color: rgba(0,200,150,0.45); color: var(--white) !important;
+    }
+    .auth-nav-list li a.nav-register {
+      background: linear-gradient(135deg, #00a87e, #00c896);
+      color: #fff !important; font-weight: 700; margin-left: 4px;
+      box-shadow: 0 0 20px rgba(0,200,150,0.28), 0 4px 14px rgba(0,168,126,0.3);
+    }
+    .auth-nav-list li a.nav-register:hover {
+      filter: brightness(1.1); transform: translateY(-1px);
+      box-shadow: 0 0 32px rgba(0,200,150,0.45), 0 6px 20px rgba(0,168,126,0.4);
+    }
+
+    /* Alert badge in nav */
+    .nav-alert-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
+      color: #f87171; font-size: 0.7rem; font-weight: 700;
+      padding: 2px 8px; border-radius: 20px; letter-spacing: 0.04em;
+    }
+    .nav-alert-dot {
+      width: 5px; height: 5px; border-radius: 50%; background: #f87171;
+      animation: alertPulse 2s infinite;
+    }
+    @keyframes alertPulse {
+      0%,100% { box-shadow: 0 0 0 2px rgba(239,68,68,0.3); }
+      50%      { box-shadow: 0 0 0 5px rgba(239,68,68,0.06); }
+    }
+
+    /* ── Shared Dropdown styles ── */
+    .nav-dropdown-wrap {
+      position: relative;
+    }
+    .nav-dropdown-toggle {
+      cursor: pointer; user-select: none;
+    }
+    .nav-chevron {
+      font-size: 0.65rem !important;
+      transition: transform 0.2s;
+      margin-left: 2px;
+    }
+    .nav-dropdown-wrap.open .nav-chevron {
+      transform: rotate(180deg);
+    }
+    .nav-dropdown {
+      display: none;
+      position: absolute; top: calc(100% + 8px); left: 50%;
+      transform: translateX(-50%);
+      min-width: 220px;
+      background: rgba(2,13,10,0.97);
+      border: 1px solid rgba(0,200,150,0.18);
+      border-radius: 12px;
+      padding: 6px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,200,150,0.08);
+      backdrop-filter: blur(20px);
+      list-style: none;
+      z-index: 3000;
+      animation: dropIn 0.18s ease both;
+    }
+    @keyframes dropIn {
+      from { opacity:0; transform: translateX(-50%) translateY(-6px); }
+      to   { opacity:1; transform: translateX(-50%) translateY(0); }
+    }
+    .nav-dropdown-wrap.open .nav-dropdown {
+      display: block;
+    }
+    .nav-dropdown li a {
+      display: flex !important; align-items: center; gap: 9px;
+      padding: 10px 14px !important; border-radius: 8px !important;
+      font-family: var(--font-b); font-size: 0.82rem; font-weight: 600;
+      color: rgba(237,255,248,0.7) !important; text-decoration: none;
+      transition: background 0.18s, color 0.18s;
+      white-space: nowrap;
+    }
+    .nav-dropdown li a:hover {
+      background: rgba(0,200,150,0.08) !important;
+      color: var(--white) !important;
+    }
+    .nav-dropdown li + li {
+      border-top: 1px solid rgba(0,200,150,0.07);
+    }
+
+    /* Mobile toggle */
+    .auth-mobile-toggle {
+      display: none;
+      background: rgba(0,200,150,0.08);
+      border: 1px solid rgba(0,200,150,0.2);
+      border-radius: 8px; color: var(--green);
+      font-size: 1.3rem; padding: 8px 10px;
+      cursor: pointer; line-height: 1;
+    }
+
+    /* ══ SHARED LAYOUT ══ */
+    .section-wrap { padding: 110px 64px; }
+    .inner { max-width: 1220px; margin: 0 auto; }
+
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 9px;
+      font-family: var(--font-b); font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--green); margin-bottom: 14px;
+    }
+    .eyebrow::before {
+      content: ''; width: 22px; height: 2px; display: block;
+      background: linear-gradient(90deg, #00a87e, #00f0b0); border-radius: 2px;
+    }
+
+    .sec-h2 {
+      font-family: var(--font-h);
+      font-size: clamp(2rem, 3.5vw, 2.9rem);
+      font-weight: 800; color: var(--white);
+      line-height: 1.12; margin-bottom: 18px; letter-spacing: -0.5px;
+    }
+    .sec-h2 em { font-style: normal; color: var(--green); }
+
+    .sec-p {
+      font-size: 1rem; color: var(--muted); line-height: 1.82; max-width: 560px;
+    }
+    .sec-head { margin-bottom: 64px; }
+
+    /* Reveal */
+    .reveal {
+      opacity: 0; transform: translateY(28px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ══ RESPONSIVE ══ */
+    @media (max-width: 1024px) {
+      .auth-hdr-inner { padding: 16px 32px; }
+      .section-wrap { padding: 80px 32px; }
+    }
+    @media (max-width: 768px) {
+      .auth-hdr-inner { padding: 14px 20px; }
+      .auth-mobile-toggle { display: block; }
+      #auth-nav { display: none; }
+      #auth-nav.open {
+        display: block;
+        position: absolute; top: 100%; left: 0; right: 0;
+        background: rgba(2,13,10,0.98);
+        border-top: 1px solid rgba(0,200,150,0.1);
+        padding: 12px 20px 20px;
+        box-shadow: 0 16px 48px rgba(0,200,150,0.12);
+        backdrop-filter: blur(20px);
+      }
+      #auth-nav.open .auth-nav-list { flex-direction: column; gap: 4px; }
+      #auth-nav.open .auth-nav-list li a { display: flex; width: 100%; }
+      .section-wrap { padding: 70px 20px; }
+      /* mobile dropdown */
+      .nav-dropdown {
+        position: static; transform: none;
+        box-shadow: none; border: none;
+        background: rgba(0,200,150,0.04);
+        border-radius: 8px; margin-top: 4px;
+        animation: none;
+      }
+      @keyframes dropIn { from{} to{} }
+    }
+  </style>
+</head>
+<body>
+
+<header id="auth-header">
+  <div class="auth-hdr-inner">
+
+    <a href="{% url 'authority_home' %}" class="auth-logo">
+      <div class="auth-logo-ico"><i class="bi bi-person-badge-fill"></i></div>
+      <span class="auth-logo-text">Safe<span>Net AI</span></span>
+      <span class="auth-logo-pill">Authority</span>
+    </a>
+
+    <button class="auth-mobile-toggle" onclick="document.getElementById('auth-nav').classList.toggle('open')">
+      <i class="bi bi-list"></i>
+    </button>
+
+    <nav id="auth-nav">
+      <ul class="auth-nav-list">
+        <li>
+          <a href="{% url 'authority_home' %}" class="{% if request.resolver_match.url_name == 'authority_home' %}active{% endif %}">
+            <i class="bi bi-house-fill"></i> Home
+          </a>
+        </li>
+
+        <!-- ── Verification Dropdown ── -->
+        <li class="nav-dropdown-wrap" id="verifyDropdownWrap">
+          <a href="#" class="nav-dropdown-toggle {% if 'resident' in request.resolver_match.url_name or 'worker' in request.resolver_match.url_name %}active{% endif %}"
+             onclick="toggleVerifyDropdown(event)">
+            <i class="bi bi-shield-check"></i> Verification
+            <i class="bi bi-chevron-down nav-chevron"></i>
+          </a>
+          <ul class="nav-dropdown" id="verifyDropdown">
+            <li>
+              <a href="{% url 'authority_view_resident' %}">
+                <i class="bi bi-person-check" style="color:#00c896;"></i>
+                Residents
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'authority_view_worker' %}">
+                <i class="bi bi-tools" style="color:#00c896;"></i>
+                Workers
+              </a>
+            </li>
+          </ul>
+        </li>
+
+        <li>
+          <a href="{% url 'authority_view_resident_complaints' %}" class="{% if 'complaint' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-chat-square-text"></i> Complaints
+          </a>
+        </li>
+
+        <!-- ── Alerts Dropdown ── -->
+        <li class="nav-dropdown-wrap" id="alertDropdownWrap">
+          <a href="#" class="nav-dropdown-toggle {% if 'alert' in request.resolver_match.url_name %}active{% endif %}"
+             onclick="toggleAlertDropdown(event)">
+            <i class="bi bi-bell-fill"></i> Alerts
+            <span class="nav-alert-badge"><span class="nav-alert-dot"></span>Live</span>
+            <i class="bi bi-chevron-down nav-chevron"></i>
+          </a>
+          <ul class="nav-dropdown" id="alertDropdown">
+            <li>
+              <a href="{% url 'authority_view_stray_dog_alerts' %}">
+                <i class="bi bi-exclamation-triangle-fill" style="color:#f59e0b;"></i>
+                Stray Dog Alerts
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'authority_view_cameras' %}">
+                <i class="bi bi-shield-exclamation" style="color:#f87171;"></i>
+                Unauthorized Entry Alerts
+              </a>
+            </li>
+              <li>
+      <a class="dropdown-item" href="{% url 'authority_view_emergency_alerts' %}">
+        <i class="bi bi-exclamation-triangle" style="color:#f59e0b;"></i>
+        Emergency Alerts
+      </a>
+    </li>
+          </ul>
+        </li>
+
+        <li>
+          <a href="/authority_view_approved_residents/" class="{% if 'chat' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-chat-dots-fill"></i> Chat
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'authority_profile' %}" class="{% if 'authority_profile' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-person-circle"></i> Profile
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'logout_view' %}" class="nav-login">
+            <i class="bi bi-box-arrow-right"></i> Sign Out
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+  </div>
+</header>
+
+<script>
+  const authHdr = document.getElementById('auth-header');
+  window.addEventListener('scroll', () => {
+    authHdr.classList.toggle('scrolled', window.scrollY > 60);
+  });
+  authHdr.classList.toggle('scrolled', window.scrollY > 60);
+
+  // Scroll reveal
+  window.addEventListener('DOMContentLoaded', () => {
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          setTimeout(() => e.target.classList.add('visible'), i * 80);
+          revealObserver.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+  });
+
+  // Verification dropdown toggle
+  function toggleVerifyDropdown(e) {
+    e.preventDefault();
+    document.getElementById('alertDropdownWrap').classList.remove('open');
+    document.getElementById('verifyDropdownWrap').classList.toggle('open');
+  }
+
+  // Alerts dropdown toggle
+  function toggleAlertDropdown(e) {
+    e.preventDefault();
+    document.getElementById('verifyDropdownWrap').classList.remove('open');
+    document.getElementById('alertDropdownWrap').classList.toggle('open');
+  }
+
+  // Close both dropdowns when clicking outside
+  document.addEventListener('click', function(e) {
+    const verify = document.getElementById('verifyDropdownWrap');
+    const alert  = document.getElementById('alertDropdownWrap');
+    if (verify && !verify.contains(e.target)) verify.classList.remove('open');
+    if (alert  && !alert.contains(e.target))  alert.classList.remove('open');
+  });
+</script>

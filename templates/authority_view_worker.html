@@ -1,0 +1,682 @@
+{#{% include 'authority_header.html' %}#}
+{##}
+{#<style>#}
+{#  @keyframes fadeUp   { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }#}
+{#  @keyframes pulseDot { 0%,100% { box-shadow:0 0 0 3px rgba(0,200,150,.3); } 50% { box-shadow:0 0 0 7px rgba(0,200,150,.06); } }#}
+{#  @keyframes shimmer  { from { background-position:-200% 0; } to { background-position:200% 0; } }#}
+{##}
+{#  .res-page { padding: 110px 64px 80px; max-width: 1100px; margin: 0 auto; }#}
+{##}
+{#  /* ── Top bar ── */#}
+{#  .res-topbar {#}
+{#    display: flex; align-items: center; justify-content: space-between;#}
+{#    flex-wrap: wrap; gap: 14px; margin-bottom: 32px;#}
+{#    animation: fadeUp .5s ease both;#}
+{#  }#}
+{#  .res-topbar-left { display: flex; align-items: center; gap: 13px; }#}
+{#  .res-tb-ico {#}
+{#    width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;#}
+{#    background: linear-gradient(135deg,#00a87e,#00c896);#}
+{#    display: flex; align-items: center; justify-content: center;#}
+{#    color: #fff; font-size: 1.15rem;#}
+{#    box-shadow: 0 0 22px rgba(0,200,150,.28);#}
+{#  }#}
+{#  .res-tb-title { font-family: var(--font-h); font-size: 1.35rem; font-weight: 800; color: var(--white); letter-spacing: -.4px; }#}
+{#  .res-tb-sub   { font-family: var(--font-b); font-size: .8rem; color: var(--muted); margin-top: 2px; }#}
+{##}
+{#  /* ── Count badge ── */#}
+{#  .res-count-badge {#}
+{#    display: inline-flex; align-items: center; gap: 7px;#}
+{#    padding: 8px 18px; border-radius: 100px;#}
+{#    background: rgba(0,200,150,.08); border: 1px solid rgba(0,200,150,.2);#}
+{#    font-family: var(--font-b); font-size: .8rem; font-weight: 700;#}
+{#    color: var(--green); letter-spacing: .05em;#}
+{#  }#}
+{##}
+{#  /* ── Grid ── */#}
+{#  .res-grid {#}
+{#    display: grid;#}
+{#    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));#}
+{#    gap: 22px;#}
+{#  }#}
+{##}
+{#  /* ── Worker card ── */#}
+{#  .res-card {#}
+{#    background: rgba(5,14,10,.75); border: 1px solid rgba(0,200,150,.12);#}
+{#    border-radius: 24px; overflow: hidden;#}
+{#    position: relative;#}
+{#    animation: fadeUp .5s ease both;#}
+{#    transition: transform .22s, box-shadow .22s;#}
+{#  }#}
+{#  .res-card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,0,0,.45), 0 0 0 1px rgba(0,200,150,.18); }#}
+{#  .res-card::before {#}
+{#    content:''; position:absolute; top:0; left:0; right:0; height:2px;#}
+{#    background: linear-gradient(90deg,#00a87e,#00c896,#00f0b0);#}
+{#  }#}
+{##}
+{#  /* Banner */#}
+{#  .res-banner {#}
+{#    height: 90px; position: relative;#}
+{#    background: linear-gradient(135deg,rgba(0,168,126,.2),rgba(0,200,150,.08),rgba(0,240,176,.04));#}
+{#  }#}
+{#  .res-banner-grid {#}
+{#    position:absolute; inset:0;#}
+{#    background-image:#}
+{#      linear-gradient(rgba(0,200,150,.055) 1px,transparent 1px),#}
+{#      linear-gradient(90deg,rgba(0,200,150,.055) 1px,transparent 1px);#}
+{#    background-size: 22px 22px;#}
+{#  }#}
+{#  .res-banner-glow {#}
+{#    position:absolute; top:-60px; right:-60px;#}
+{#    width:240px; height:240px; border-radius:50%;#}
+{#    background: radial-gradient(circle,rgba(0,200,150,.12) 0%,transparent 65%);#}
+{#    pointer-events:none;#}
+{#  }#}
+{##}
+{#  /* Avatar */#}
+{#  .res-avatar-anchor {#}
+{#    position:absolute; bottom:-40px; left:28px;#}
+{#    width:76px; height:76px;#}
+{#  }#}
+{#  .res-av-ring {#}
+{#    width:76px; height:76px; border-radius:18px;#}
+{#    border: 3px solid rgba(5,14,10,.95);#}
+{#    overflow:hidden; background: rgba(0,168,126,.18);#}
+{#    box-shadow: 0 8px 26px rgba(0,0,0,.45), 0 0 0 1px rgba(0,200,150,.22);#}
+{#    display:flex; align-items:center; justify-content:center;#}
+{#    color: var(--green); font-size:1.9rem;#}
+{#  }#}
+{#  .res-av-ring img { width:100%; height:100%; object-fit:cover; }#}
+{##}
+{#  /* Status dot on avatar */#}
+{#  .av-status-dot {#}
+{#    position:absolute; bottom:4px; right:4px;#}
+{#    width:13px; height:13px; border-radius:50%;#}
+{#    border: 3px solid rgba(5,14,10,.95);#}
+{#  }#}
+{#  .av-status-dot.pending  { background: #f59e0b; animation: pulseDot 2.2s infinite; }#}
+{#  .av-status-dot.approved { background: var(--green); animation: pulseDot 2.2s infinite; }#}
+{#  .av-status-dot.rejected { background: #ef4444; }#}
+{##}
+{#  /* Body */#}
+{#  .res-body { padding: 50px 26px 26px; }#}
+{##}
+{#  .res-name {#}
+{#    font-family: var(--font-h); font-size: 1.1rem; font-weight: 800;#}
+{#    color: var(--white); letter-spacing: -.3px; margin-bottom: 6px;#}
+{#  }#}
+{##}
+{#  /* Status badge */#}
+{#  .status-badge {#}
+{#    display: inline-flex; align-items: center; gap: 6px;#}
+{#    padding: 3px 11px; border-radius: 100px;#}
+{#    font-family: var(--font-b); font-size: .63rem; font-weight: 700;#}
+{#    letter-spacing: .1em; text-transform: uppercase;#}
+{#    margin-bottom: 18px;#}
+{#  }#}
+{#  .status-badge.pending  { background: rgba(245,158,11,.1);  border: 1px solid rgba(245,158,11,.25);  color: #fbbf24; }#}
+{#  .status-badge.approved { background: rgba(0,200,150,.1);   border: 1px solid rgba(0,200,150,.25);   color: var(--green); }#}
+{#  .status-badge.rejected { background: rgba(239,68,68,.1);   border: 1px solid rgba(239,68,68,.25);   color: #f87171; }#}
+{#  .badge-live { width:5px; height:5px; border-radius:50%; background:currentColor; }#}
+{##}
+{#  /* Info rows */#}
+{#  .res-info-list { display:flex; flex-direction:column; gap:8px; margin-bottom:22px; }#}
+{#  .res-info-row {#}
+{#    display:flex; align-items:center; gap:11px;#}
+{#    padding:10px 13px; border-radius:11px;#}
+{#    background: rgba(0,200,150,.04); border:1px solid rgba(0,200,150,.08);#}
+{#    transition: background .2s, border-color .2s;#}
+{#  }#}
+{#  .res-info-row:hover { background:rgba(0,200,150,.08); border-color:rgba(0,200,150,.16); }#}
+{#  .res-info-ico {#}
+{#    width:32px; height:32px; border-radius:9px; flex-shrink:0;#}
+{#    background: linear-gradient(135deg,rgba(0,168,126,.22),rgba(0,200,150,.12));#}
+{#    color: var(--green); display:flex; align-items:center; justify-content:center;#}
+{#    font-size:.8rem;#}
+{#  }#}
+{#  .res-info-tag { font-family:var(--font-b); font-size:.58rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:2px; }#}
+{#  .res-info-val { font-family:var(--font-b); font-size:.82rem; font-weight:600; color:var(--white); word-break:break-all; }#}
+{##}
+{#  /* Divider */#}
+{#  .sec-divider {#}
+{#    font-family:var(--font-b); font-size:.6rem; font-weight:700;#}
+{#    letter-spacing:.14em; text-transform:uppercase; color:var(--green);#}
+{#    display:flex; align-items:center; gap:9px; margin-bottom:12px;#}
+{#  }#}
+{#  .sec-divider::after { content:''; flex:1; height:1px; background:rgba(0,200,150,.1); }#}
+{##}
+{#  /* Action buttons */#}
+{#  .res-actions { display:flex; gap:10px; }#}
+{##}
+{#  .btn-approve, .btn-reject, .btn-disabled {#}
+{#    flex:1; display:inline-flex; align-items:center; justify-content:center; gap:7px;#}
+{#    padding: 10px 14px; border-radius:10px;#}
+{#    font-family: var(--font-b); font-size: .78rem; font-weight: 700;#}
+{#    text-decoration: none; border: none; cursor: pointer;#}
+{#    transition: all .22s;#}
+{#  }#}
+{#  .btn-approve {#}
+{#    background: linear-gradient(135deg,#00a87e,#00c896);#}
+{#    color: #fff;#}
+{#    box-shadow: 0 4px 16px rgba(0,200,150,.24);#}
+{#  }#}
+{#  .btn-approve:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,200,150,.4); color:#fff; }#}
+{##}
+{#  .btn-reject {#}
+{#    background: rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.22);#}
+{#    color: #f87171;#}
+{#  }#}
+{#  .btn-reject:hover { background:rgba(239,68,68,.2); transform:translateY(-2px); color:#f87171; }#}
+{##}
+{#  .btn-disabled {#}
+{#    background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);#}
+{#    color: var(--muted); cursor: not-allowed; opacity: .6;#}
+{#    pointer-events: none;#}
+{#  }#}
+{##}
+{#  /* Empty state */#}
+{#  .res-empty {#}
+{#    grid-column: 1/-1;#}
+{#    display:flex; flex-direction:column; align-items:center; justify-content:center;#}
+{#    padding: 80px 20px; gap: 14px; text-align:center;#}
+{#    animation: fadeUp .5s ease both;#}
+{#  }#}
+{#  .res-empty-ico {#}
+{#    width:72px; height:72px; border-radius:20px;#}
+{#    background: rgba(0,200,150,.08); border:1px solid rgba(0,200,150,.14);#}
+{#    color: var(--green); display:flex; align-items:center; justify-content:center;#}
+{#    font-size:2rem; margin-bottom:6px;#}
+{#  }#}
+{#  .res-empty-title { font-family:var(--font-h); font-size:1.1rem; font-weight:800; color:var(--white); }#}
+{#  .res-empty-sub   { font-family:var(--font-b); font-size:.82rem; color:var(--muted); }#}
+{##}
+{#  @media(max-width:768px){ .res-page { padding:100px 20px 60px; } }#}
+{#</style>#}
+{##}
+{#<div class="res-page">#}
+{##}
+{#  <!-- Top bar -->#}
+{#  <div class="res-topbar">#}
+{#    <div class="res-topbar-left">#}
+{#      <div class="res-tb-ico"><i class="bi bi-person-gear"></i></div>#}
+{#      <div>#}
+{#        <div class="res-tb-title">Workers</div>#}
+{#        <div class="res-tb-sub">Manage worker registrations</div>#}
+{#      </div>#}
+{#    </div>#}
+{#    <div class="res-count-badge">#}
+{#      <i class="bi bi-person-badge-fill"></i>#}
+{#      {{ workers|length }} Worker{{ workers|length|pluralize }}#}
+{#    </div>#}
+{#  </div>#}
+{##}
+{#  <!-- Cards grid -->#}
+{#  <div class="res-grid">#}
+{##}
+{#    {% if workers %}#}
+{#      {% for worker in workers %}#}
+{#      <div class="res-card" style="animation-delay: {{ forloop.counter0 }}00ms">#}
+{##}
+{#        <div class="res-banner">#}
+{#          <div class="res-banner-grid"></div>#}
+{#          <div class="res-banner-glow"></div>#}
+{#          <div class="res-avatar-anchor">#}
+{#            <div class="res-av-ring">#}
+{#              {% if worker.photo1 %}#}
+{#                <img src="{{ worker.photo1.url }}" alt="{{ worker.name }}">#}
+{#              {% else %}#}
+{#                <i class="bi bi-person-fill"></i>#}
+{#              {% endif %}#}
+{#            </div>#}
+{#            <div class="av-status-dot {{ worker.status }}"></div>#}
+{#          </div>#}
+{#        </div>#}
+{##}
+{#        <div class="res-body">#}
+{##}
+{#          <div class="res-name">{{ worker.name }}</div>#}
+{##}
+{#          <div class="status-badge {{ worker.status }}">#}
+{#            <span class="badge-live"></span>#}
+{#            {% if worker.status == 'pending' %}Pending Review#}
+{#            {% elif worker.status == 'approved' %}Approved#}
+{#            {% else %}Rejected{% endif %}#}
+{#          </div>#}
+{##}
+{#          <div class="res-info-list">#}
+{##}
+{#            <div class="res-info-row">#}
+{#              <div class="res-info-ico"><i class="bi bi-person-fill"></i></div>#}
+{#              <div>#}
+{#                <div class="res-info-tag">Username</div>#}
+{#                <div class="res-info-val">@{{ worker.USER.username }}</div>#}
+{#              </div>#}
+{#            </div>#}
+{##}
+{#            <div class="res-info-row">#}
+{#              <div class="res-info-ico"><i class="bi bi-envelope-fill"></i></div>#}
+{#              <div>#}
+{#                <div class="res-info-tag">Email</div>#}
+{#                <div class="res-info-val">{{ worker.email }}</div>#}
+{#              </div>#}
+{#            </div>#}
+{##}
+{#            <div class="res-info-row">#}
+{#              <div class="res-info-ico"><i class="bi bi-telephone-fill"></i></div>#}
+{#              <div>#}
+{#                <div class="res-info-tag">Phone</div>#}
+{#                <div class="res-info-val">{{ worker.phone }}</div>#}
+{#              </div>#}
+{#            </div>#}
+{##}
+{#            <div class="res-info-row">#}
+{#              <div class="res-info-ico"><i class="bi bi-tags-fill"></i></div>#}
+{#              <div>#}
+{#                <div class="res-info-tag">Category</div>#}
+{#                <div class="res-info-val">{{ worker.category }}</div>#}
+{#              </div>#}
+{#            </div>#}
+{##}
+{#            <div class="res-info-row">#}
+{#              <div class="res-info-ico"><i class="bi bi-geo-alt-fill"></i></div>#}
+{#              <div>#}
+{#                <div class="res-info-tag">Address</div>#}
+{#                <div class="res-info-val">{{ worker.address }}</div>#}
+{#              </div>#}
+{#            </div>#}
+{##}
+{#          </div>#}
+{##}
+{#          <!-- Actions -->#}
+{#          <div class="sec-divider"><i class="bi bi-shield-check"></i> Actions</div>#}
+{#          <div class="res-actions">#}
+{#            {% if worker.status == 'pending' %}#}
+{#              <a href="{% url 'authority_approve_worker' worker.id %}" class="btn-approve">#}
+{#                <i class="bi bi-check-circle-fill"></i> Approve#}
+{#              </a>#}
+{#              <a href="{% url 'authority_reject_worker' worker.id %}" class="btn-reject">#}
+{#                <i class="bi bi-x-circle-fill"></i> Reject#}
+{#              </a>#}
+{#            {% elif worker.status == 'approved' %}#}
+{#              <span class="btn-disabled">#}
+{#                <i class="bi bi-check-circle-fill"></i> Approved#}
+{#              </span>#}
+{#            {% else %}#}
+{#              <span class="btn-disabled">#}
+{#                <i class="bi bi-x-circle-fill"></i> Rejected#}
+{#              </span>#}
+{#            {% endif %}#}
+{#          </div>#}
+{##}
+{#        </div>#}
+{#      </div>#}
+{#      {% endfor %}#}
+{##}
+{#    {% else %}#}
+{#      <div class="res-empty">#}
+{#        <div class="res-empty-ico"><i class="bi bi-person-gear"></i></div>#}
+{#        <div class="res-empty-title">No Workers Found</div>#}
+{#        <div class="res-empty-sub">There are no worker registrations to review at this time.</div>#}
+{#      </div>#}
+{#    {% endif %}#}
+{##}
+{#  </div>#}
+{##}
+{#</div>#}
+{##}
+{#</body>#}
+{#</html>#}
+
+
+
+
+{% include 'authority_header.html' %}
+
+<style>
+  @keyframes fadeUp   { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes pulseDot { 0%,100% { box-shadow:0 0 0 3px rgba(0,200,150,.3); } 50% { box-shadow:0 0 0 7px rgba(0,200,150,.06); } }
+  @keyframes shimmer  { from { background-position:-200% 0; } to { background-position:200% 0; } }
+
+  .res-page { padding: 110px 64px 80px; max-width: 1100px; margin: 0 auto; }
+
+  /* ── Top bar ── */
+  .res-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 14px; margin-bottom: 32px;
+    animation: fadeUp .5s ease both;
+  }
+  .res-topbar-left { display: flex; align-items: center; gap: 13px; }
+  .res-tb-ico {
+    width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
+    background: linear-gradient(135deg,#00a87e,#00c896);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1.15rem;
+    box-shadow: 0 0 22px rgba(0,200,150,.28);
+  }
+  .res-tb-title { font-family: var(--font-h); font-size: 1.35rem; font-weight: 800; color: var(--white); letter-spacing: -.4px; }
+  .res-tb-sub   { font-family: var(--font-b); font-size: .8rem; color: var(--muted); margin-top: 2px; }
+
+  /* ── Count badge ── */
+  .res-count-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 18px; border-radius: 100px;
+    background: rgba(0,200,150,.08); border: 1px solid rgba(0,200,150,.2);
+    font-family: var(--font-b); font-size: .8rem; font-weight: 700;
+    color: var(--green); letter-spacing: .05em;
+  }
+
+  /* ── Grid ── */
+  .res-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 22px;
+  }
+
+  /* ── Worker card ── */
+  .res-card {
+    background: rgba(5,14,10,.75); border: 1px solid rgba(0,200,150,.12);
+    border-radius: 24px; overflow: hidden;
+    position: relative;
+    animation: fadeUp .5s ease both;
+    transition: transform .22s, box-shadow .22s;
+  }
+  .res-card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,0,0,.45), 0 0 0 1px rgba(0,200,150,.18); }
+  .res-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background: linear-gradient(90deg,#00a87e,#00c896,#00f0b0);
+  }
+
+  /* Banner */
+  .res-banner {
+    height: 90px; position: relative;
+    background: linear-gradient(135deg,rgba(0,168,126,.2),rgba(0,200,150,.08),rgba(0,240,176,.04));
+  }
+  .res-banner-grid {
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(0,200,150,.055) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(0,200,150,.055) 1px,transparent 1px);
+    background-size: 22px 22px;
+  }
+  .res-banner-glow {
+    position:absolute; top:-60px; right:-60px;
+    width:240px; height:240px; border-radius:50%;
+    background: radial-gradient(circle,rgba(0,200,150,.12) 0%,transparent 65%);
+    pointer-events:none;
+  }
+
+  /* Avatar */
+  .res-avatar-anchor {
+    position:absolute; bottom:-40px; left:28px;
+    width:76px; height:76px;
+  }
+  .res-av-ring {
+    width:76px; height:76px; border-radius:18px;
+    border: 3px solid rgba(5,14,10,.95);
+    overflow:hidden; background: rgba(0,168,126,.18);
+    box-shadow: 0 8px 26px rgba(0,0,0,.45), 0 0 0 1px rgba(0,200,150,.22);
+    display:flex; align-items:center; justify-content:center;
+    color: var(--green); font-size:1.9rem;
+  }
+  .res-av-ring img { width:100%; height:100%; object-fit:cover; }
+
+  /* Status dot on avatar */
+  .av-status-dot {
+    position:absolute; bottom:4px; right:4px;
+    width:13px; height:13px; border-radius:50%;
+    border: 3px solid rgba(5,14,10,.95);
+  }
+  .av-status-dot.pending  { background: #f59e0b; animation: pulseDot 2.2s infinite; }
+  .av-status-dot.approved { background: var(--green); animation: pulseDot 2.2s infinite; }
+  .av-status-dot.rejected { background: #ef4444; }
+
+  /* Body */
+  .res-body { padding: 50px 26px 26px; }
+
+  .res-name {
+    font-family: var(--font-h); font-size: 1.1rem; font-weight: 800;
+    color: var(--white); letter-spacing: -.3px; margin-bottom: 6px;
+  }
+
+  /* Status badge */
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 11px; border-radius: 100px;
+    font-family: var(--font-b); font-size: .63rem; font-weight: 700;
+    letter-spacing: .1em; text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .status-badge.pending  { background: rgba(245,158,11,.1);  border: 1px solid rgba(245,158,11,.25);  color: #fbbf24; }
+  .status-badge.approved { background: rgba(0,200,150,.1);   border: 1px solid rgba(0,200,150,.25);   color: var(--green); }
+  .status-badge.rejected { background: rgba(239,68,68,.1);   border: 1px solid rgba(239,68,68,.25);   color: #f87171; }
+  .badge-live { width:5px; height:5px; border-radius:50%; background:currentColor; }
+
+  /* Info rows */
+  .res-info-list { display:flex; flex-direction:column; gap:8px; margin-bottom:22px; }
+  .res-info-row {
+    display:flex; align-items:center; gap:11px;
+    padding:10px 13px; border-radius:11px;
+    background: rgba(0,200,150,.04); border:1px solid rgba(0,200,150,.08);
+    transition: background .2s, border-color .2s;
+  }
+  .res-info-row:hover { background:rgba(0,200,150,.08); border-color:rgba(0,200,150,.16); }
+  .res-info-ico {
+    width:32px; height:32px; border-radius:9px; flex-shrink:0;
+    background: linear-gradient(135deg,rgba(0,168,126,.22),rgba(0,200,150,.12));
+    color: var(--green); display:flex; align-items:center; justify-content:center;
+    font-size:.8rem;
+  }
+  .res-info-tag { font-family:var(--font-b); font-size:.58rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:2px; }
+  .res-info-val { font-family:var(--font-b); font-size:.82rem; font-weight:600; color:var(--white); word-break:break-all; }
+
+  /* Divider */
+  .sec-divider {
+    font-family:var(--font-b); font-size:.6rem; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--green);
+    display:flex; align-items:center; gap:9px; margin-bottom:12px;
+  }
+  .sec-divider::after { content:''; flex:1; height:1px; background:rgba(0,200,150,.1); }
+
+  /* Action buttons */
+  .res-actions { display:flex; flex-direction:column; gap:10px; }
+  .res-actions-row { display:flex; gap:10px; }
+
+  .btn-approve, .btn-reject, .btn-disabled, .btn-history {
+    flex:1; display:inline-flex; align-items:center; justify-content:center; gap:7px;
+    padding: 10px 14px; border-radius:10px;
+    font-family: var(--font-b); font-size: .78rem; font-weight: 700;
+    text-decoration: none; border: none; cursor: pointer;
+    transition: all .22s;
+  }
+  .btn-approve {
+    background: linear-gradient(135deg,#00a87e,#00c896);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(0,200,150,.24);
+  }
+  .btn-approve:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,200,150,.4); color:#fff; }
+
+  .btn-reject {
+    background: rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.22);
+    color: #f87171;
+  }
+  .btn-reject:hover { background:rgba(239,68,68,.2); transform:translateY(-2px); color:#f87171; }
+
+  .btn-disabled {
+    background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);
+    color: var(--muted); cursor: not-allowed; opacity: .6;
+    pointer-events: none;
+  }
+
+  .btn-history {
+    background: rgba(0,200,150,.07); border:1px solid rgba(0,200,150,.22);
+    color: var(--green);
+  }
+  .btn-history:hover { background:rgba(0,200,150,.14); transform:translateY(-2px); color:var(--green); }
+
+  /* Empty state */
+  .res-empty {
+    grid-column: 1/-1;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding: 80px 20px; gap: 14px; text-align:center;
+    animation: fadeUp .5s ease both;
+  }
+  .res-empty-ico {
+    width:72px; height:72px; border-radius:20px;
+    background: rgba(0,200,150,.08); border:1px solid rgba(0,200,150,.14);
+    color: var(--green); display:flex; align-items:center; justify-content:center;
+    font-size:2rem; margin-bottom:6px;
+  }
+  .res-empty-title { font-family:var(--font-h); font-size:1.1rem; font-weight:800; color:var(--white); }
+  .res-empty-sub   { font-family:var(--font-b); font-size:.82rem; color:var(--muted); }
+
+  @media(max-width:768px){ .res-page { padding:100px 20px 60px; } }
+</style>
+
+<div class="res-page">
+
+  <!-- Top bar -->
+  <div class="res-topbar">
+    <div class="res-topbar-left">
+      <div class="res-tb-ico"><i class="bi bi-person-gear"></i></div>
+      <div>
+        <div class="res-tb-title">Workers</div>
+        <div class="res-tb-sub">Manage worker registrations</div>
+      </div>
+    </div>
+    <div class="res-count-badge">
+      <i class="bi bi-person-badge-fill"></i>
+      {{ workers|length }} Worker{{ workers|length|pluralize }}
+    </div>
+  </div>
+
+  <!-- Cards grid -->
+  <div class="res-grid">
+
+    {% if workers %}
+      {% for worker in workers %}
+      <div class="res-card" style="animation-delay: {{ forloop.counter0 }}00ms">
+
+        <div class="res-banner">
+          <div class="res-banner-grid"></div>
+          <div class="res-banner-glow"></div>
+          <div class="res-avatar-anchor">
+            <div class="res-av-ring">
+              {% if worker.photo1 %}
+                <img src="{{ worker.photo1.url }}" alt="{{ worker.name }}">
+              {% else %}
+                <i class="bi bi-person-fill"></i>
+              {% endif %}
+            </div>
+            <div class="av-status-dot {{ worker.status }}"></div>
+          </div>
+        </div>
+
+        <div class="res-body">
+
+          <div class="res-name">{{ worker.name }}</div>
+
+          <div class="status-badge {{ worker.status }}">
+            <span class="badge-live"></span>
+            {% if worker.status == 'pending' %}Pending Review
+            {% elif worker.status == 'approved' %}Approved
+            {% else %}Rejected{% endif %}
+          </div>
+
+          <div class="res-info-list">
+
+            <div class="res-info-row">
+              <div class="res-info-ico"><i class="bi bi-person-fill"></i></div>
+              <div>
+                <div class="res-info-tag">Username</div>
+                <div class="res-info-val">@{{ worker.USER.username }}</div>
+              </div>
+            </div>
+
+            <div class="res-info-row">
+              <div class="res-info-ico"><i class="bi bi-envelope-fill"></i></div>
+              <div>
+                <div class="res-info-tag">Email</div>
+                <div class="res-info-val">{{ worker.email }}</div>
+              </div>
+            </div>
+
+            <div class="res-info-row">
+              <div class="res-info-ico"><i class="bi bi-telephone-fill"></i></div>
+              <div>
+                <div class="res-info-tag">Phone</div>
+                <div class="res-info-val">{{ worker.phone }}</div>
+              </div>
+            </div>
+
+            <div class="res-info-row">
+              <div class="res-info-ico"><i class="bi bi-tags-fill"></i></div>
+              <div>
+                <div class="res-info-tag">Category</div>
+                <div class="res-info-val">{{ worker.category }}</div>
+              </div>
+            </div>
+
+            <div class="res-info-row">
+              <div class="res-info-ico"><i class="bi bi-geo-alt-fill"></i></div>
+              <div>
+                <div class="res-info-tag">Address</div>
+                <div class="res-info-val">{{ worker.address }}</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Actions -->
+          <div class="sec-divider"><i class="bi bi-shield-check"></i> Actions</div>
+          <div class="res-actions">
+
+            {% if worker.status == 'pending' %}
+              <div class="res-actions-row">
+                <a href="{% url 'authority_approve_worker' worker.id %}" class="btn-approve">
+                  <i class="bi bi-check-circle-fill"></i> Approve
+                </a>
+                <a href="{% url 'authority_reject_worker' worker.id %}" class="btn-reject">
+                  <i class="bi bi-x-circle-fill"></i> Reject
+                </a>
+              </div>
+
+            {% elif worker.status == 'approved' %}
+              <div class="res-actions-row">
+                <span class="btn-disabled">
+                  <i class="bi bi-check-circle-fill"></i> Approved
+                </span>
+              </div>
+              <a href="{% url 'authority_view_worker_request_history' worker.id %}" class="btn-history">
+                <i class="bi bi-clock-history"></i> View Request History
+              </a>
+
+            {% else %}
+              <div class="res-actions-row">
+                <span class="btn-disabled">
+                  <i class="bi bi-x-circle-fill"></i> Rejected
+                </span>
+              </div>
+            {% endif %}
+
+          </div>
+
+        </div>
+      </div>
+      {% endfor %}
+
+    {% else %}
+      <div class="res-empty">
+        <div class="res-empty-ico"><i class="bi bi-person-gear"></i></div>
+        <div class="res-empty-title">No Workers Found</div>
+        <div class="res-empty-sub">There are no worker registrations to review at this time.</div>
+      </div>
+    {% endif %}
+
+  </div>
+
+</div>
+
+{% include 'authority_footer.html' %}
+
+</body>
+</html>

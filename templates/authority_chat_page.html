@@ -1,0 +1,58 @@
+<h2>Chat with {{ resident.name }}</h2>
+
+<div id="chatbox" style="height:300px;overflow:auto;border:1px solid black;padding:10px"></div>
+
+<br>
+
+<input type="text" id="msg">
+<button onclick="sendChat()">Send</button>
+
+<script>
+
+function loadChat(){
+
+fetch("/authority_view_chat/",{
+method:"POST",
+headers:{'Content-Type':'application/x-www-form-urlencoded'},
+body:"to_id={{uid}}"
+})
+.then(res=>res.json())
+.then(data=>{
+
+let div=document.getElementById("chatbox");
+div.innerHTML="";
+
+data.data.forEach(msg=>{
+
+let color = msg.toxic ? "red":"black";
+
+div.innerHTML += "<p style='color:"+color+"'>"+msg.message+"</p>";
+
+});
+
+});
+
+}
+
+function sendChat(){
+
+let msg=document.getElementById("msg").value;
+
+fetch("/authority_send_chat/",{
+method:"POST",
+headers:{'Content-Type':'application/x-www-form-urlencoded'},
+body:"to_id={{uid}}&message="+msg
+})
+.then(res=>res.json())
+.then(data=>{
+
+document.getElementById("msg").value="";
+loadChat();
+
+});
+
+}
+
+setInterval(loadChat,2000);
+
+</script>

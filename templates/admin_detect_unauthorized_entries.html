@@ -1,0 +1,387 @@
+{% extends 'admin_sidebar.html' %}
+{% block page_title %}Unauthorized Detection{% endblock %}
+
+{% block content %}
+<style>
+  .page-wrap { padding: 32px 36px; }
+
+  /* ── Page Header ── */
+  .page-hdr { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:28px; animation: fadeUp 0.5s ease both; flex-wrap:wrap; }
+  .page-hdr-left { display:flex; align-items:center; gap:14px; }
+  .page-hdr-ico {
+    width:48px; height:48px; border-radius:13px; flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1.2rem;
+    box-shadow: 0 0 20px rgba(0,212,255,0.25);
+  }
+  .page-hdr-title { font-family:var(--font-h); font-size:1.45rem; font-weight:800; color:var(--text); letter-spacing:-0.4px; }
+  .page-hdr-sub   { font-family:var(--font-b); font-size:0.82rem; color:var(--muted); margin-top:2px; }
+
+  /* ── Camera Card ── */
+  .camera-card {
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:18px;
+    overflow:hidden;
+    margin-bottom:28px;
+    animation: fadeUp 0.5s 0.08s ease both;
+    position:relative;
+  }
+  .camera-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,var(--accent2),var(--accent),var(--accent3));
+  }
+  .camera-card-header {
+    padding:18px 24px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid var(--border);
+    flex-wrap:wrap; gap:12px;
+  }
+  .camera-card-title {
+    font-family:var(--font-h); font-size:1rem; font-weight:700; color:var(--text);
+    display:flex; align-items:center; gap:10px;
+  }
+  .camera-status {
+    display:flex; align-items:center; gap:6px;
+    font-family:var(--font-b); font-size:0.7rem; font-weight:700;
+    color:var(--muted); letter-spacing:0.08em; text-transform:uppercase;
+    padding:5px 12px; border-radius:20px;
+    background:rgba(238,244,255,0.04); border:1px solid var(--border);
+    transition:all 0.3s;
+  }
+  .camera-status.live {
+    color:var(--accent3); background:rgba(0,240,200,0.08); border-color:rgba(0,240,200,0.2);
+  }
+  .camera-status-dot {
+    width:7px; height:7px; border-radius:50%; background:rgba(238,244,255,0.2);
+    transition:all 0.3s;
+  }
+  .camera-status.live .camera-status-dot {
+    background:var(--accent3);
+    animation: livePulse 2s infinite;
+  }
+  .cam-btns { display:flex; gap:10px; }
+  .btn-start {
+    padding:9px 20px; border-radius:10px; cursor:pointer; border:none;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    color:#fff; font-family:var(--font-b); font-size:0.82rem; font-weight:700;
+    box-shadow:0 4px 18px rgba(0,87,255,0.3);
+    display:flex; align-items:center; gap:7px;
+    transition:all 0.2s;
+  }
+  .btn-start:hover { box-shadow:0 6px 24px rgba(0,87,255,0.45); transform:translateY(-1px); }
+  .btn-stop {
+    padding:9px 20px; border-radius:10px; cursor:pointer;
+    background:rgba(255,60,80,0.1); border:1px solid rgba(255,60,80,0.25);
+    color:#ff6b80; font-family:var(--font-b); font-size:0.82rem; font-weight:700;
+    display:flex; align-items:center; gap:7px;
+    transition:all 0.2s;
+  }
+  .btn-stop:hover { background:rgba(255,60,80,0.18); border-color:rgba(255,60,80,0.4); }
+
+  .camera-feed-wrap {
+    padding:24px;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(2,8,16,0.5);
+    min-height:200px;
+    position:relative;
+  }
+  .camera-placeholder {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:12px; color:var(--muted);
+    font-family:var(--font-b); font-size:0.85rem;
+  }
+  .camera-placeholder i { font-size:2.5rem; opacity:0.25; }
+  #camera {
+    width:100%; max-width:720px; border-radius:10px;
+    border:1px solid var(--border);
+    display:none;
+  }
+
+  /* ── Entries Section ── */
+  .section-label {
+    font-family:var(--font-b); font-size:0.62rem; font-weight:700;
+    letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--accent3); margin-bottom:16px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .section-label::after { content:''; flex:1; height:1px; background:rgba(0,240,200,0.1); }
+
+  .entries-count {
+    font-family:var(--font-b); font-size:0.72rem; font-weight:700;
+    color:var(--accent); background:rgba(0,212,255,0.1);
+    border:1px solid rgba(0,212,255,0.2); border-radius:20px;
+    padding:2px 10px; margin-left:8px;
+  }
+
+  .entries-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap:16px;
+  }
+
+  /* ── Folder Card ── */
+  .folder-card {
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    overflow:hidden;
+    cursor:pointer;
+    transition:border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    animation: fadeUp 0.5s ease both;
+  }
+  .folder-card:hover {
+    border-color:rgba(0,212,255,0.3);
+    transform:translateY(-2px);
+    box-shadow:0 8px 32px rgba(0,87,255,0.15);
+  }
+  .folder-card.open {
+    border-color:rgba(0,212,255,0.35);
+    box-shadow:0 0 0 1px rgba(0,212,255,0.1), 0 8px 32px rgba(0,87,255,0.12);
+  }
+
+  .folder-header {
+    padding:16px 18px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .folder-ico {
+    width:40px; height:40px; border-radius:10px; flex-shrink:0;
+    background:rgba(255,180,0,0.1); border:1px solid rgba(255,180,0,0.2);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.1rem;
+    transition:all 0.2s;
+  }
+  .folder-card.open .folder-ico {
+    background:rgba(0,87,255,0.18); border-color:rgba(0,212,255,0.3);
+  }
+  .folder-card.open .folder-ico::after { content:'📂'; }
+  .folder-ico::after { content:'📁'; }
+  .folder-card .folder-ico i { display:none; } /* use emoji */
+
+  .folder-meta { flex:1; min-width:0; }
+  .folder-name {
+    font-family:var(--font-h); font-size:0.92rem; font-weight:700;
+    color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .folder-time {
+    font-family:var(--font-b); font-size:0.72rem; color:var(--muted);
+    margin-top:2px; display:flex; align-items:center; gap:5px;
+  }
+
+  .folder-chevron {
+    color:var(--muted); font-size:0.85rem;
+    transition:transform 0.3s, color 0.2s;
+    flex-shrink:0;
+  }
+  .folder-card.open .folder-chevron {
+    transform:rotate(180deg); color:var(--accent);
+  }
+
+  /* ── Image Panel ── */
+  .folder-images {
+    display:none;
+    padding:0 18px 18px;
+    border-top:1px solid var(--border);
+    animation: fadeUp 0.3s ease both;
+  }
+  .folder-images.open { display:block; }
+
+  .images-label {
+    font-family:var(--font-b); font-size:0.62rem; font-weight:700;
+    letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--muted); padding:12px 0 10px;
+    display:flex; align-items:center; gap:6px;
+  }
+
+  .images-grid {
+    display:flex; flex-wrap:wrap; gap:10px;
+  }
+  .images-grid img {
+    width:100px; height:80px;
+    object-fit:cover;
+    border-radius:8px;
+    border:1px solid var(--border);
+    transition:transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    cursor:zoom-in;
+  }
+  .images-grid img:hover {
+    transform:scale(1.06);
+    border-color:rgba(0,212,255,0.35);
+    box-shadow:0 4px 16px rgba(0,87,255,0.2);
+  }
+
+  /* ── Empty State ── */
+  .empty-state {
+    grid-column: 1 / -1;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:12px; padding:48px;
+    background:var(--bg-card); border:1px dashed rgba(0,212,255,0.12);
+    border-radius:14px; color:var(--muted);
+  }
+  .empty-state i { font-size:2.5rem; opacity:0.2; }
+  .empty-state p { font-family:var(--font-b); font-size:0.85rem; }
+
+  /* ── Lightbox ── */
+  .lightbox {
+    display:none; position:fixed; inset:0; z-index:1000;
+    background:rgba(2,8,16,0.92); backdrop-filter:blur(12px);
+    align-items:center; justify-content:center;
+  }
+  .lightbox.on { display:flex; }
+  .lightbox img { max-width:90vw; max-height:90vh; border-radius:12px; border:1px solid var(--border); }
+  .lightbox-close {
+    position:absolute; top:20px; right:24px;
+    color:var(--muted); font-size:1.5rem; cursor:pointer;
+    transition:color 0.2s;
+  }
+  .lightbox-close:hover { color:var(--accent); }
+
+  @keyframes livePulse {
+    0%,100% { box-shadow: 0 0 0 3px rgba(0,240,200,0.25); }
+    50%      { box-shadow: 0 0 0 7px rgba(0,240,200,0.05); }
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+</style>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <i class="bi bi-x-lg lightbox-close"></i>
+  <img id="lightbox-img" src="">
+</div>
+
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-hdr-ico"><i class="bi bi-camera-fill"></i></div>
+      <div>
+        <div class="page-hdr-title">Unauthorized Detection</div>
+        <div class="page-hdr-sub">Live face recognition & unauthorized entry monitoring</div>
+      </div>
+    </div>
+    <div class="camera-status" id="cameraStatus">
+      <div class="camera-status-dot"></div>
+      <span id="cameraStatusText">Camera Offline</span>
+    </div>
+  </div>
+
+  <!-- Camera Card -->
+  <div class="camera-card">
+    <div class="camera-card-header">
+      <div class="camera-card-title">
+        <i class="bi bi-camera-video-fill" style="color:var(--accent);"></i>
+        Live Camera Feed
+      </div>
+      <div class="cam-btns">
+        <button class="btn-start" onclick="startCamera()">
+          <i class="bi bi-play-fill"></i> Start Camera
+        </button>
+        <button class="btn-stop" onclick="stopCamera()">
+          <i class="bi bi-stop-fill"></i> Stop Camera
+        </button>
+      </div>
+    </div>
+    <div class="camera-feed-wrap">
+      <div class="camera-placeholder" id="cameraPlaceholder">
+        <i class="bi bi-camera-video-off"></i>
+        <span>Camera feed inactive — press Start to begin</span>
+      </div>
+      <img src="" id="camera">
+    </div>
+  </div>
+
+  <!-- Entries -->
+  <div class="section-label">
+    <i class="bi bi-folder-fill"></i> Unauthorized Entries
+    <span class="entries-count">{{ entries|length }}</span>
+  </div>
+
+  <div class="entries-grid">
+
+    {% if entries %}
+      {% for item in entries %}
+      <div class="folder-card" id="card{{item.entry.id}}" onclick="toggleFolder('f{{item.entry.id}}', 'card{{item.entry.id}}')" style="animation-delay:{{ forloop.counter0 }}00ms">
+        <div class="folder-header">
+          <div class="folder-ico"></div>
+          <div class="folder-meta">
+            <div class="folder-name">Detection {{forloop.counter}}</div>
+            <div class="folder-time">
+              <i class="bi bi-clock" style="font-size:0.65rem;"></i>
+              {{item.entry.detected_time}}
+            </div>
+          </div>
+          <i class="bi bi-chevron-down folder-chevron" id="chev{{item.entry.id}}"></i>
+        </div>
+        <div class="folder-images" id="f{{item.entry.id}}">
+          <div class="images-label"><i class="bi bi-images"></i> Captured Frames</div>
+          <div class="images-grid">
+            {% for img in item.images %}
+            <img src="{{img}}" onclick="openLightbox(event, '{{img}}')" alt="Frame {{forloop.counter}}">
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <i class="bi bi-shield-check"></i>
+        <p>No unauthorized entries detected</p>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<script>
+  // ── Camera ──
+  function startCamera() {
+    const img = document.getElementById("camera");
+    const placeholder = document.getElementById("cameraPlaceholder");
+    const status = document.getElementById("cameraStatus");
+    const statusText = document.getElementById("cameraStatusText");
+    img.src = "/admin_detect_unauthorized_entries?action=start";
+    img.style.display = "block";
+    placeholder.style.display = "none";
+    status.classList.add("live");
+    statusText.textContent = "Camera Live";
+  }
+
+  function stopCamera() {
+    const img = document.getElementById("camera");
+    const placeholder = document.getElementById("cameraPlaceholder");
+    const status = document.getElementById("cameraStatus");
+    const statusText = document.getElementById("cameraStatusText");
+    img.src = "";
+    img.style.display = "none";
+    placeholder.style.display = "flex";
+    status.classList.remove("live");
+    statusText.textContent = "Camera Offline";
+    fetch("/admin_detect_unauthorized_entries?action=stop").then(() => location.reload());
+  }
+
+  // ── Folder Toggle ──
+  function toggleFolder(id, cardId) {
+    const panel = document.getElementById(id);
+    const card  = document.getElementById(cardId);
+    const isOpen = panel.classList.contains("open");
+    panel.classList.toggle("open", !isOpen);
+    card.classList.toggle("open", !isOpen);
+  }
+
+  // ── Lightbox ──
+  function openLightbox(e, src) {
+    e.stopPropagation();
+    document.getElementById("lightbox-img").src = src;
+    document.getElementById("lightbox").classList.add("on");
+  }
+  function closeLightbox() {
+    document.getElementById("lightbox").classList.remove("on");
+  }
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeLightbox(); });
+</script>
+{% endblock %}

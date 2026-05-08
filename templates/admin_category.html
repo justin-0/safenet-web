@@ -1,0 +1,356 @@
+{% extends 'admin_sidebar.html' %}
+{% block page_title %}Categories{% endblock %}
+
+{% block content %}
+<style>
+  .page-wrap { padding: 32px 36px; max-width: 960px; margin: 0 auto; }
+
+  /* ── Page header ── */
+  .page-hdr { display:flex; align-items:center; gap:14px; margin-bottom:32px; animation: fadeUp 0.5s ease both; }
+  .page-hdr-ico {
+    width:48px; height:48px; border-radius:13px; flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1.2rem;
+    box-shadow: 0 0 20px rgba(0,212,255,0.25);
+  }
+  .page-hdr-title { font-family:var(--font-h); font-size:1.45rem; font-weight:800; color:var(--text); letter-spacing:-0.4px; }
+  .page-hdr-sub   { font-family:var(--font-b); font-size:0.82rem; color:var(--muted); margin-top:2px; }
+
+  /* ── Messages ── */
+  .msg { display:flex; align-items:center; gap:10px; padding:12px 16px; border-radius:10px; margin-bottom:20px; font-family:var(--font-b); font-size:0.85rem; font-weight:600; }
+  .msg.error   { background:rgba(255,60,80,0.1);  border:1px solid rgba(255,60,80,0.25);  color:#ff6b80; }
+  .msg.success { background:rgba(0,240,200,0.09); border:1px solid rgba(0,240,200,0.22); color:var(--accent3); }
+
+  /* ── Add Form Card ── */
+  .form-card {
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:18px; padding:32px 36px;
+    animation: fadeUp 0.5s 0.08s ease both;
+    position:relative; overflow:hidden;
+    margin-bottom:28px;
+  }
+  .form-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,var(--accent2),var(--accent),var(--accent3));
+  }
+
+  .form-sec {
+    font-family:var(--font-b); font-size:0.62rem; font-weight:700;
+    letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--accent3); margin:0 0 16px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .form-sec::after { content:''; flex:1; height:1px; background:rgba(0,240,200,0.1); }
+
+  .add-row { display:flex; gap:14px; align-items:flex-end; }
+  .add-row .field { flex:1; display:flex; flex-direction:column; gap:6px; }
+  .field label {
+    font-family:var(--font-b); font-size:0.75rem; font-weight:700;
+    color:var(--muted); letter-spacing:0.04em;
+    display:flex; align-items:center; gap:5px;
+  }
+  .field label .req { color:var(--accent); font-size:0.8rem; }
+  .field input {
+    background:rgba(3,11,24,0.6);
+    border:1px solid rgba(0,212,255,0.12);
+    border-radius:10px; padding:11px 14px;
+    color:var(--text); font-family:var(--font-b); font-size:0.88rem; font-weight:500;
+    outline:none; transition:border-color 0.2s, box-shadow 0.2s;
+    width:100%;
+  }
+  .field input:focus {
+    border-color:rgba(0,212,255,0.45);
+    box-shadow:0 0 0 3px rgba(0,212,255,0.08);
+  }
+  .field-err {
+    font-family:var(--font-b); font-size:0.7rem; color:#ff6b80;
+    display:none; align-items:center; gap:4px; margin-top:2px;
+  }
+  .field-err.show { display:flex; }
+  .field input.err { border-color:rgba(255,60,80,0.5); }
+
+  .btn-submit {
+    padding:11px 26px; border-radius:10px; cursor:pointer;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    border:none; color:#fff; font-family:var(--font-b); font-size:0.88rem; font-weight:700;
+    box-shadow:0 4px 18px rgba(0,87,255,0.3);
+    display:flex; align-items:center; gap:8px;
+    transition:all 0.2s; white-space:nowrap; flex-shrink:0;
+  }
+  .btn-submit:hover { box-shadow:0 6px 24px rgba(0,87,255,0.45); transform:translateY(-1px); }
+
+  /* ── Table Card ── */
+  .table-card {
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:18px; overflow:hidden;
+    animation: fadeUp 0.5s 0.16s ease both;
+  }
+  .table-hdr {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 24px;
+    border-bottom:1px solid var(--border);
+  }
+  .table-hdr-left { display:flex; align-items:center; gap:10px; }
+  .table-hdr-title { font-family:var(--font-h); font-size:0.95rem; font-weight:700; color:var(--text); }
+  .table-count {
+    font-family:var(--font-b); font-size:0.68rem; font-weight:700;
+    background:rgba(0,212,255,0.1); border:1px solid rgba(0,212,255,0.2);
+    color:var(--accent); border-radius:20px; padding:2px 10px;
+  }
+
+  table { width:100%; border-collapse:collapse; }
+  thead tr { border-bottom:1px solid var(--border); }
+  thead th {
+    font-family:var(--font-b); font-size:0.68rem; font-weight:700;
+    letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--muted); padding:12px 22px; text-align:left;
+  }
+  tbody tr {
+    border-bottom:1px solid rgba(0,212,255,0.04);
+    transition:background 0.15s;
+  }
+  tbody tr:last-child { border-bottom:none; }
+  tbody tr:hover { background:rgba(0,212,255,0.03); }
+  tbody td {
+    font-family:var(--font-b); font-size:0.86rem; font-weight:500;
+    color:var(--text); padding:14px 22px; vertical-align:middle;
+  }
+
+  .td-num {
+    font-family:var(--font-h); font-size:0.78rem; font-weight:700;
+    color:var(--muted);
+  }
+  .td-name { font-weight:600; color:var(--text); }
+
+  .badge-cat {
+    display:inline-flex; align-items:center; gap:5px;
+    font-family:var(--font-b); font-size:0.72rem; font-weight:700;
+    padding:4px 12px; border-radius:20px;
+    color:var(--accent); background:rgba(0,212,255,0.07); border:1px solid rgba(0,212,255,0.18);
+  }
+
+  .action-btns { display:flex; gap:8px; align-items:center; }
+  .btn-edit, .btn-delete {
+    display:inline-flex; align-items:center; gap:5px;
+    font-family:var(--font-b); font-size:0.75rem; font-weight:700;
+    padding:6px 14px; border-radius:8px; cursor:pointer; border:none;
+    text-decoration:none; transition:all 0.18s;
+  }
+  .btn-edit {
+    background:rgba(0,212,255,0.08); border:1px solid rgba(0,212,255,0.18);
+    color:var(--accent);
+  }
+  .btn-edit:hover { background:rgba(0,212,255,0.16); box-shadow:0 0 12px rgba(0,212,255,0.15); }
+  .btn-delete {
+    background:rgba(255,60,80,0.08); border:1px solid rgba(255,60,80,0.18);
+    color:#ff6b80;
+  }
+  .btn-delete:hover { background:rgba(255,60,80,0.16); }
+
+  /* Empty state */
+  .empty-state {
+    padding:52px 24px; text-align:center;
+  }
+  .empty-ico {
+    width:56px; height:56px; border-radius:16px;
+    background:rgba(0,212,255,0.06); border:1px solid rgba(0,212,255,0.12);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--muted); font-size:1.4rem; margin:0 auto 14px;
+  }
+  .empty-title { font-family:var(--font-h); font-size:1rem; font-weight:700; color:var(--muted); margin-bottom:6px; }
+  .empty-sub   { font-family:var(--font-b); font-size:0.82rem; color:rgba(238,244,255,0.2); }
+
+  /* Delete confirm modal */
+  .modal-backdrop {
+    display:none; position:fixed; inset:0;
+    background:rgba(2,8,16,0.78); backdrop-filter:blur(6px);
+    z-index:400; align-items:center; justify-content:center;
+  }
+  .modal-backdrop.on { display:flex; }
+  .modal {
+    background:var(--bg-card); border:1px solid var(--border);
+    border-radius:18px; padding:32px; max-width:400px; width:90%;
+    animation: fadeUp 0.3s ease both;
+    position:relative; overflow:hidden;
+  }
+  .modal::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,#ff3c50,#ff6b80);
+  }
+  .modal-ico {
+    width:52px; height:52px; border-radius:14px; margin:0 auto 18px;
+    background:rgba(255,60,80,0.1); border:1px solid rgba(255,60,80,0.2);
+    display:flex; align-items:center; justify-content:center;
+    color:#ff6b80; font-size:1.4rem;
+  }
+  .modal-title { font-family:var(--font-h); font-size:1.15rem; font-weight:800; color:var(--text); text-align:center; margin-bottom:8px; }
+  .modal-sub   { font-family:var(--font-b); font-size:0.84rem; color:var(--muted); text-align:center; line-height:1.6; margin-bottom:24px; }
+  .modal-btns  { display:flex; gap:10px; }
+  .btn-cancel {
+    flex:1; padding:11px; border-radius:10px; cursor:pointer;
+    background:rgba(238,244,255,0.04); border:1px solid var(--border);
+    color:var(--muted); font-family:var(--font-b); font-size:0.88rem; font-weight:700;
+    transition:all 0.2s;
+  }
+  .btn-cancel:hover { background:rgba(238,244,255,0.08); color:var(--text); }
+  .btn-danger {
+    flex:1; padding:11px; border-radius:10px; cursor:pointer;
+    background:linear-gradient(135deg,#c0392b,#ff3c50);
+    border:none; color:#fff; font-family:var(--font-b); font-size:0.88rem; font-weight:700;
+    box-shadow:0 4px 18px rgba(255,60,80,0.25);
+    transition:all 0.2s;
+  }
+  .btn-danger:hover { transform:translateY(-1px); box-shadow:0 6px 24px rgba(255,60,80,0.35); }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+</style>
+
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="page-hdr">
+    <div class="page-hdr-ico"><i class="bi bi-tags-fill"></i></div>
+    <div>
+      <div class="page-hdr-title">Categories</div>
+      <div class="page-hdr-sub">Manage service categories for the SafeNet AI platform</div>
+    </div>
+  </div>
+
+  <!-- Django messages -->
+  {% for message in messages %}
+    <div class="msg {{ message.tags }}">
+      <i class="bi bi-{% if message.tags == 'error' %}exclamation-circle-fill{% else %}check-circle-fill{% endif %}"></i>
+      {{ message }}
+    </div>
+  {% endfor %}
+
+  <!-- Add Category Form -->
+  <div class="form-card">
+    <div class="form-sec"><i class="bi bi-plus-circle-fill"></i> Add New Category</div>
+    <form method="POST" id="categoryForm" novalidate>
+      {% csrf_token %}
+      <div class="add-row">
+        <div class="field">
+          <label>Category Name <span class="req">*</span></label>
+          <input type="text" name="category_name" id="category_name" placeholder="e.g. Plumbing, Electrical, Cleaning…" autocomplete="off">
+          <div class="field-err" id="err-category_name"><i class="bi bi-x-circle-fill"></i><span></span></div>
+        </div>
+        <button type="submit" class="btn-submit"><i class="bi bi-plus-lg"></i> Add Category</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Categories Table -->
+  <div class="table-card">
+    <div class="table-hdr">
+      <div class="table-hdr-left">
+        <i class="bi bi-tags-fill" style="color:var(--accent);font-size:1rem;"></i>
+        <span class="table-hdr-title">All Categories</span>
+        <span class="table-count">{{ categories.count }} total</span>
+      </div>
+    </div>
+
+    {% if categories %}
+    <table>
+      <thead>
+        <tr>
+          <th style="width:60px;">#</th>
+          <th>Category Name</th>
+          <th>Status</th>
+          <th style="text-align:right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for category in categories %}
+        <tr>
+          <td class="td-num">{{ forloop.counter }}</td>
+          <td class="td-name">
+            <span class="badge-cat"><i class="bi bi-tag-fill"></i> {{ category.category_name }}</span>
+          </td>
+          <td>
+            <span style="display:inline-flex;align-items:center;gap:5px;font-family:var(--font-b);font-size:0.72rem;font-weight:700;color:var(--accent3);">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--accent3);display:inline-block;"></span> Active
+            </span>
+          </td>
+          <td>
+            <div class="action-btns" style="justify-content:flex-end;">
+              <a href="/admin_edit_category/{{ category.id }}/" class="btn-edit"><i class="bi bi-pencil-fill"></i> Edit</a>
+              <button class="btn-delete" onclick="confirmDelete({{ category.id }}, '{{ category.category_name }}')">
+                <i class="bi bi-trash3-fill"></i> Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-ico"><i class="bi bi-tags"></i></div>
+      <div class="empty-title">No categories yet</div>
+      <div class="empty-sub">Add your first category using the form above.</div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-backdrop" id="deleteModal">
+  <div class="modal">
+    <div class="modal-ico"><i class="bi bi-trash3-fill"></i></div>
+    <div class="modal-title">Delete Category?</div>
+    <div class="modal-sub">You are about to delete <strong id="deleteCatName" style="color:var(--text);"></strong>. This action cannot be undone.</div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()"><i class="bi bi-x-lg"></i> Cancel</button>
+      <a href="#" id="deleteConfirmLink" class="btn-danger" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <i class="bi bi-trash3-fill"></i> Delete
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Form validation
+  document.getElementById('categoryForm').addEventListener('submit', function(e) {
+    const val = document.getElementById('category_name').value.trim();
+    const err = document.getElementById('err-category_name');
+    const inp = document.getElementById('category_name');
+    if (!val) {
+      err.querySelector('span').textContent = 'Category name is required';
+      err.classList.add('show');
+      inp.classList.add('err');
+      e.preventDefault();
+    } else {
+      err.classList.remove('show');
+      inp.classList.remove('err');
+    }
+  });
+
+  document.getElementById('category_name').addEventListener('input', function() {
+    if (this.value.trim()) {
+      document.getElementById('err-category_name').classList.remove('show');
+      this.classList.remove('err');
+    }
+  });
+
+  // Delete modal
+  function confirmDelete(id, name) {
+    document.getElementById('deleteCatName').textContent = '"' + name + '"';
+    document.getElementById('deleteConfirmLink').href = '/admin_delete_category/' + id + '/';
+    document.getElementById('deleteModal').classList.add('on');
+  }
+  function closeModal() {
+    document.getElementById('deleteModal').classList.remove('on');
+  }
+  document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+</script>
+{% endblock %}

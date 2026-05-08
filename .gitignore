@@ -1,0 +1,40 @@
+# Environment
+.env
+
+# Media files
+media/
+
+# Python
+__pycache__/
+*.pyc
+
+# Database
+db.sqlite3
+
+# Large ML model files
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.zip
+*.exe
+*.wav
+*.h5
+*.pkl
+
+# Large ML model folders
+myapp/hate_speech_detector/
+myapp/face_recognition_model/
+myapp/model_checkpoints/
+myapp/results/
+
+# Temp files
+temp_audio.wav
+
+# PyCharm
+.idea/
+
+# Virtual environment
+venv/
+.venv/
+env/

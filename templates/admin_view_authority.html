@@ -1,0 +1,374 @@
+{% extends 'admin_sidebar.html' %}
+{% block page_title %}Authorities{% endblock %}
+
+{% block content %}
+<style>
+  .page-wrap { padding: 32px 36px; }
+
+  /* ── Page header ── */
+  .page-hdr {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:28px; flex-wrap:wrap; gap:14px;
+    animation: fadeUp 0.5s ease both;
+  }
+  .page-hdr-left { display:flex; align-items:center; gap:14px; }
+  .page-hdr-ico {
+    width:48px; height:48px; border-radius:13px; flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1.2rem;
+    box-shadow:0 0 20px rgba(0,212,255,0.25);
+  }
+  .page-hdr-title { font-family:var(--font-h); font-size:1.45rem; font-weight:800; color:var(--text); letter-spacing:-0.4px; }
+  .page-hdr-sub   { font-family:var(--font-b); font-size:0.82rem; color:var(--muted); margin-top:2px; }
+
+  .btn-add {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:10px 22px; border-radius:10px;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    border:none; color:#fff;
+    font-family:var(--font-b); font-size:0.85rem; font-weight:700;
+    text-decoration:none; cursor:pointer;
+    box-shadow:0 4px 16px rgba(0,87,255,0.28);
+    transition:all 0.2s;
+  }
+  .btn-add:hover { transform:translateY(-2px); box-shadow:0 6px 22px rgba(0,87,255,0.4); color:#fff; }
+
+  /* ── Search / filter bar ── */
+  .filter-bar {
+    display:flex; align-items:center; gap:12px; margin-bottom:24px;
+    animation: fadeUp 0.5s 0.06s ease both;
+    flex-wrap:wrap;
+  }
+  .search-wrap {
+    position:relative; flex:1; min-width:220px;
+  }
+  .search-wrap i {
+    position:absolute; left:13px; top:50%; transform:translateY(-50%);
+    color:var(--muted); font-size:0.95rem; pointer-events:none;
+  }
+  .search-wrap input {
+    width:100%; background:var(--bg-card); border:1px solid var(--border);
+    border-radius:10px; padding:10px 14px 10px 38px;
+    color:var(--text); font-family:var(--font-b); font-size:0.85rem;
+    outline:none; transition:border-color 0.2s;
+  }
+  .search-wrap input:focus { border-color:rgba(0,212,255,0.4); }
+  .search-wrap input::placeholder { color:var(--muted); }
+  .count-pill {
+    font-family:var(--font-b); font-size:0.75rem; font-weight:700;
+    padding:6px 14px; border-radius:20px;
+    background:rgba(0,212,255,0.08); border:1px solid rgba(0,212,255,0.18);
+    color:var(--accent); white-space:nowrap;
+  }
+
+  /* ── Card grid ── */
+  .cards-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap:18px;
+    animation: fadeUp 0.5s 0.12s ease both;
+  }
+
+  /* ── Authority Card ── */
+  .auth-card {
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    overflow:hidden;
+    transition:transform 0.22s, box-shadow 0.22s, border-color 0.22s;
+    position:relative;
+  }
+  .auth-card:hover {
+    transform:translateY(-5px);
+    box-shadow:0 18px 48px rgba(0,0,0,0.35);
+    border-color:rgba(0,212,255,0.2);
+  }
+  .auth-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,var(--accent2),var(--accent),var(--accent3));
+    opacity:0;
+    transition:opacity 0.22s;
+  }
+  .auth-card:hover::before { opacity:1; }
+
+  /* Card top / photo banner */
+  .card-banner {
+    height:72px;
+    background:linear-gradient(135deg,rgba(0,87,255,0.15),rgba(0,212,255,0.06));
+    border-bottom:1px solid var(--border);
+    position:relative;
+  }
+  .card-avatar {
+    width:68px; height:68px; border-radius:16px;
+    border:3px solid var(--bg-card);
+    background:rgba(0,87,255,0.18);
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+    position:absolute; bottom:-28px; left:20px;
+    box-shadow:0 4px 16px rgba(0,0,0,0.3);
+    flex-shrink:0;
+  }
+  .card-avatar img { width:100%; height:100%; object-fit:cover; }
+  .card-avatar .av-ico { color:var(--accent); font-size:1.8rem; }
+
+  /* Card body */
+  .card-body { padding:38px 20px 20px; }
+  .card-name {
+    font-family:var(--font-h); font-size:1rem; font-weight:800;
+    color:var(--text); letter-spacing:-0.2px; margin-bottom:2px;
+  }
+  .card-username {
+    font-family:var(--font-b); font-size:0.72rem; color:var(--accent);
+    font-weight:600; margin-bottom:14px;
+  }
+
+  /* Info rows */
+  .card-info { display:flex; flex-direction:column; gap:7px; margin-bottom:16px; }
+  .card-info-row {
+    display:flex; align-items:center; gap:9px;
+    font-family:var(--font-b); font-size:0.78rem; color:var(--muted);
+  }
+  .card-info-row i { color:var(--accent2); font-size:0.85rem; width:16px; flex-shrink:0; }
+  .card-info-row span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  /* Badge */
+  .card-badge {
+    display:inline-flex; align-items:center; gap:5px;
+    font-family:var(--font-b); font-size:0.65rem; font-weight:700;
+    letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--accent3); background:rgba(0,240,200,0.09);
+    border:1px solid rgba(0,240,200,0.2); border-radius:20px;
+    padding:3px 10px; margin-bottom:16px;
+  }
+  .badge-dot { width:5px; height:5px; border-radius:50%; background:var(--accent3); animation:livePulse 2s infinite; }
+
+  /* Card footer */
+  .card-footer {
+    border-top:1px solid var(--border);
+    padding:14px 20px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .btn-view-doc {
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:var(--font-b); font-size:0.75rem; font-weight:700;
+    color:var(--accent); text-decoration:none;
+    padding:6px 12px; border-radius:8px;
+    background:rgba(0,212,255,0.07); border:1px solid rgba(0,212,255,0.15);
+    transition:all 0.2s;
+  }
+  .btn-view-doc:hover { background:rgba(0,212,255,0.14); color:var(--accent); }
+  .btn-delete {
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:var(--font-b); font-size:0.75rem; font-weight:700;
+    color:#ff6b80; text-decoration:none;
+    padding:6px 12px; border-radius:8px;
+    background:rgba(255,60,80,0.07); border:1px solid rgba(255,60,80,0.15);
+    transition:all 0.2s; cursor:pointer;
+  }
+  .btn-delete:hover { background:rgba(255,60,80,0.14); }
+
+  /* Empty state */
+  .empty-state {
+    text-align:center; padding:80px 20px;
+    grid-column:1/-1;
+  }
+  .empty-ico {
+    width:72px; height:72px; border-radius:20px; margin:0 auto 16px;
+    background:rgba(0,87,255,0.1); border:1px solid rgba(0,212,255,0.15);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--accent); font-size:2rem;
+  }
+  .empty-title { font-family:var(--font-h); font-size:1.1rem; font-weight:700; color:var(--text); margin-bottom:6px; }
+  .empty-sub   { font-family:var(--font-b); font-size:0.85rem; color:var(--muted); }
+
+  /* Delete confirm modal */
+  .modal-bg {
+    display:none; position:fixed; inset:0;
+    background:rgba(2,8,16,0.8); backdrop-filter:blur(6px);
+    z-index:999; align-items:center; justify-content:center;
+  }
+  .modal-bg.show { display:flex; }
+  .modal-box {
+    background:var(--bg-card); border:1px solid rgba(255,60,80,0.25);
+    border-radius:18px; padding:32px; max-width:380px; width:90%;
+    animation:fadeUp 0.25s ease both;
+    position:relative;
+  }
+  .modal-box::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,#ff3c50,#ff6b80);
+    border-radius:18px 18px 0 0;
+  }
+  .modal-ico {
+    width:52px; height:52px; border-radius:14px; margin:0 auto 16px;
+    background:rgba(255,60,80,0.1); border:1px solid rgba(255,60,80,0.2);
+    display:flex; align-items:center; justify-content:center;
+    color:#ff6b80; font-size:1.4rem;
+  }
+  .modal-title { font-family:var(--font-h); font-size:1.1rem; font-weight:800; color:var(--text); text-align:center; margin-bottom:8px; }
+  .modal-sub   { font-family:var(--font-b); font-size:0.84rem; color:var(--muted); text-align:center; margin-bottom:24px; }
+  .modal-btns  { display:flex; gap:10px; justify-content:center; }
+  .modal-cancel {
+    padding:10px 22px; border-radius:9px; cursor:pointer;
+    background:rgba(238,244,255,0.05); border:1px solid var(--border);
+    color:var(--muted); font-family:var(--font-b); font-size:0.85rem; font-weight:700;
+    transition:all 0.2s;
+  }
+  .modal-cancel:hover { color:var(--text); background:rgba(238,244,255,0.09); }
+  .modal-confirm {
+    padding:10px 22px; border-radius:9px; cursor:pointer;
+    background:linear-gradient(135deg,#ff3c50,#ff6b80);
+    border:none; color:#fff; font-family:var(--font-b); font-size:0.85rem; font-weight:700;
+    box-shadow:0 4px 14px rgba(255,60,80,0.3);
+    transition:all 0.2s;
+  }
+  .modal-confirm:hover { box-shadow:0 6px 20px rgba(255,60,80,0.45); }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  @keyframes livePulse {
+    0%,100% { box-shadow:0 0 0 3px rgba(0,240,200,0.25); }
+    50%      { box-shadow:0 0 0 7px rgba(0,240,200,0.05); }
+  }
+</style>
+
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-hdr-ico"><i class="bi bi-person-badge-fill"></i></div>
+      <div>
+        <div class="page-hdr-title">Authorities</div>
+        <div class="page-hdr-sub">Manage registered authority officers</div>
+      </div>
+    </div>
+    <a href="{% url 'admin_add_authority' %}" class="btn-add">
+      <i class="bi bi-plus-lg"></i> Add Authority
+    </a>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <div class="search-wrap">
+      <i class="bi bi-search"></i>
+      <input type="text" id="searchInput" placeholder="Search by name, email or place…" onkeyup="filterCards()">
+    </div>
+    <div class="count-pill" id="countPill">{{ authorities|length }} Officer{{ authorities|length|pluralize }}</div>
+  </div>
+
+  <!-- Django messages -->
+  {% for message in messages %}
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:10px;margin-bottom:18px;font-family:var(--font-b);font-size:0.85rem;font-weight:600;background:{% if message.tags == 'error' %}rgba(255,60,80,0.1){% else %}rgba(0,240,200,0.09){% endif %};border:1px solid {% if message.tags == 'error' %}rgba(255,60,80,0.25){% else %}rgba(0,240,200,0.22){% endif %};color:{% if message.tags == 'error' %}#ff6b80{% else %}var(--accent3){% endif %};">
+      <i class="bi bi-{% if message.tags == 'error' %}exclamation-circle-fill{% else %}check-circle-fill{% endif %}"></i>
+      {{ message }}
+    </div>
+  {% endfor %}
+
+  <!-- Cards grid -->
+  <div class="cards-grid" id="cardsGrid">
+
+    {% for authority in authorities %}
+    <div class="auth-card" data-search="{{ authority.name|lower }} {{ authority.email|lower }} {{ authority.place|lower }} {{ authority.USER.username|lower }}">
+
+      <div class="card-banner">
+        <div class="card-avatar">
+          {% if authority.photo1 %}
+            <img src="{{ authority.photo1.url }}" alt="{{ authority.name }}">
+          {% else %}
+            <i class="bi bi-person-fill av-ico"></i>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="card-badge"><div class="badge-dot"></div> Authority Officer</div>
+        <div class="card-name">{{ authority.name }}</div>
+        <div class="card-username">@{{ authority.USER.username }}</div>
+
+        <div class="card-info">
+          <div class="card-info-row">
+            <i class="bi bi-envelope-fill"></i>
+            <span title="{{ authority.email }}">{{ authority.email }}</span>
+          </div>
+          <div class="card-info-row">
+            <i class="bi bi-telephone-fill"></i>
+            <span>{{ authority.phone }}</span>
+          </div>
+          <div class="card-info-row">
+            <i class="bi bi-geo-alt-fill"></i>
+            <span>{{ authority.place }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        {% if authority.license_proof %}
+          <a href="{{ authority.license_proof.url }}" target="_blank" class="btn-view-doc">
+            <i class="bi bi-file-earmark-text"></i> License
+          </a>
+        {% else %}
+          <span style="font-family:var(--font-b);font-size:0.75rem;color:var(--muted);">No license</span>
+        {% endif %}
+        <button class="btn-delete" onclick="confirmDelete({{ authority.id }}, '{{ authority.name }}')">
+          <i class="bi bi-trash3-fill"></i> Delete
+        </button>
+      </div>
+
+    </div>
+    {% empty %}
+    <div class="empty-state">
+      <div class="empty-ico"><i class="bi bi-person-badge"></i></div>
+      <div class="empty-title">No Authorities Yet</div>
+      <div class="empty-sub">Add the first authority officer to get started.</div>
+    </div>
+    {% endfor %}
+
+  </div>
+</div>
+
+<!-- Delete confirm modal -->
+<div class="modal-bg" id="deleteModal">
+  <div class="modal-box">
+    <div class="modal-ico"><i class="bi bi-trash3-fill"></i></div>
+    <div class="modal-title">Delete Authority?</div>
+    <div class="modal-sub" id="modalMsg">This action cannot be undone.</div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <a href="#" class="modal-confirm" id="confirmLink">Delete</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Search / filter ──
+  function filterCards() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const cards = document.querySelectorAll('.auth-card');
+    let visible = 0;
+    cards.forEach(card => {
+      const data = card.dataset.search || '';
+      const show = data.includes(q);
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    document.getElementById('countPill').textContent = visible + ' Officer' + (visible !== 1 ? 's' : '');
+  }
+
+  // ── Delete modal ──
+  function confirmDelete(id, name) {
+    document.getElementById('modalMsg').textContent = `"${name}" will be permanently removed along with all their data.`;
+    document.getElementById('confirmLink').href = `/admin_delete_authority/${id}/`;
+    document.getElementById('deleteModal').classList.add('show');
+  }
+  function closeModal() {
+    document.getElementById('deleteModal').classList.remove('show');
+  }
+  document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+</script>
+{% endblock %}

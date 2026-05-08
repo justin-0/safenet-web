@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeNet AI – Smart Home Residence Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Nunito:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  <style>
+    /* ═══════════ GLOBAL DESIGN TOKENS */
+    :root {
+      --navy:       #030b18;
+      --deep:       #060f20;
+      --mid:        #0a1830;
+      --blue:       #0057ff;
+      --blue-lt:    #3a7fff;
+      --cyan:       #00d4ff;
+      --teal:       #00f0c8;
+      --teal-glow:  rgba(0,240,200,0.15);
+      --cyan-glow:  rgba(0,212,255,0.18);
+      --blue-glow:  rgba(0,87,255,0.22);
+      --white:      #eef4ff;
+      --muted:      #6a84a8;
+      --ink-12:     rgba(0,212,255,0.12);
+      --card-bg:    rgba(6,15,32,0.7);
+      --border:     rgba(0,212,255,0.14);
+      --shadow-sm:  0 2px 12px rgba(0,87,255,0.1);
+      --shadow-md:  0 8px 32px rgba(0,87,255,0.15);
+      --shadow-lg:  0 24px 72px rgba(0,87,255,0.2);
+      --font-disp:  'Outfit', sans-serif;
+      --font-body:  'Nunito', sans-serif;
+      --radius-sm:  10px;
+      --radius-md:  18px;
+      --radius-lg:  28px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: var(--font-body);
+      background: var(--navy);
+      color: var(--white);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ═══════════ HEADER */
+    #header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 2000;
+      background: transparent;
+      transition: background 0.4s ease, backdrop-filter 0.4s ease, box-shadow 0.4s;
+    }
+    #header.scrolled {
+      background: rgba(3,11,24,0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 4px 32px rgba(0,87,255,0.18), 0 1px 0 rgba(0,212,255,0.12);
+    }
+
+    .hdr-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 64px;
+      max-width: 1380px;
+      margin: 0 auto;
+    }
+
+    /* Logo */
+    .logo-wrap {
+      display: flex; align-items: center; gap: 11px;
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.05rem; color: #fff;
+      box-shadow: 0 0 24px rgba(0,212,255,0.4), 0 0 8px rgba(0,87,255,0.4);
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .logo-icon::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    }
+    .logo-text {
+      font-family: var(--font-disp);
+      font-size: 1.5rem; font-weight: 800;
+      color: var(--white);
+      letter-spacing: -0.5px; line-height: 1;
+    }
+    .logo-text span { color: var(--cyan); }
+
+    /* Nav */
+    .nav-list {
+      list-style: none;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .nav-list li a {
+      font-family: var(--font-body);
+      font-size: 0.85rem; font-weight: 500;
+      color: rgba(238,244,255,0.65);
+      text-decoration: none;
+      padding: 9px 17px;
+      border-radius: 8px;
+      letter-spacing: 0.01em;
+      transition: color 0.2s, background 0.2s;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .nav-list li a:hover, .nav-list li a.active {
+      color: #fff;
+      background: rgba(0,212,255,0.08);
+    }
+    .nav-list li a.btn-login {
+      border: 1.5px solid rgba(0,212,255,0.25);
+      color: rgba(238,244,255,0.8) !important;
+      margin-left: 6px;
+    }
+    .nav-list li a.btn-login:hover {
+      background: rgba(0,212,255,0.1);
+      border-color: rgba(0,212,255,0.5);
+      color: #fff !important;
+    }
+    .nav-list li a.btn-register {
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+      color: #fff !important;
+      font-weight: 700; margin-left: 4px;
+      box-shadow: 0 0 20px rgba(0,212,255,0.25), 0 4px 14px rgba(0,87,255,0.3);
+    }
+    .nav-list li a.btn-register:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+      box-shadow: 0 0 32px rgba(0,212,255,0.4), 0 6px 20px rgba(0,87,255,0.4);
+    }
+
+    /* Mobile toggle */
+    .mobile-toggle {
+      display: none;
+      background: rgba(0,212,255,0.08);
+      border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 8px;
+      color: var(--cyan); font-size: 1.3rem;
+      padding: 8px 10px; cursor: pointer; line-height: 1;
+    }
+
+    /* ═══════════ SHARED */
+    .section-wrap { padding: 110px 64px; }
+    .inner { max-width: 1220px; margin: 0 auto; }
+
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 9px;
+      font-family: var(--font-body);
+      font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--cyan); margin-bottom: 14px;
+    }
+    .eyebrow::before {
+      content: '';
+      width: 22px; height: 2px;
+      background: linear-gradient(90deg, var(--blue), var(--cyan));
+      border-radius: 2px; display: block;
+    }
+
+    .sec-h2 {
+      font-family: var(--font-disp);
+      font-size: clamp(2rem, 3.5vw, 2.9rem);
+      font-weight: 800; color: var(--white);
+      line-height: 1.12; margin-bottom: 18px; letter-spacing: -0.5px;
+    }
+    .sec-h2 em { font-style: normal; color: var(--cyan); }
+    .sec-h2-dark em { color: var(--teal); }
+
+    .sec-p {
+      font-size: 1rem; color: var(--muted);
+      line-height: 1.82; max-width: 560px;
+    }
+    .sec-p-light { color: rgba(238,244,255,0.55); }
+    .sec-head { margin-bottom: 64px; }
+
+    /* Card base */
+    .card-base {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s, border-color 0.3s;
+    }
+    .card-base:hover {
+      transform: translateY(-7px);
+      box-shadow: var(--shadow-lg);
+      border-color: rgba(0,212,255,0.28);
+    }
+
+    /* Reveal */
+    .reveal {
+      opacity: 0; transform: translateY(28px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 1024px) {
+      .hdr-inner { padding: 18px 32px; }
+      .section-wrap { padding: 80px 32px; }
+    }
+    @media (max-width: 768px) {
+      .hdr-inner { padding: 14px 20px; }
+      .mobile-toggle { display: block; }
+      nav { display: none; }
+      nav.open {
+        display: block;
+        position: absolute; top: 100%; left: 0; right: 0;
+        background: rgba(3,11,24,0.98);
+        border-top: 1px solid rgba(0,212,255,0.12);
+        padding: 12px 20px 20px;
+        box-shadow: 0 16px 48px rgba(0,87,255,0.25);
+        backdrop-filter: blur(20px);
+      }
+      nav.open .nav-list { flex-direction: column; gap: 4px; }
+      nav.open .nav-list li a { display: flex; width: 100%; }
+      .section-wrap { padding: 70px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header id="header">
+  <div class="hdr-inner">
+    <a href="/" class="logo-wrap">
+      <div class="logo-icon"><i class="bi bi-shield-fill-check"></i></div>
+      <span class="logo-text">Safe<span>Net AI</span></span>
+    </a>
+
+    <button class="mobile-toggle" onclick="document.querySelector('#main-nav').classList.toggle('open')">
+      <i class="bi bi-list"></i>
+    </button>
+
+    <nav id="main-nav">
+      <ul class="nav-list">
+        <li><a href="/" class="active"><i class="bi bi-house"></i> Home</a></li>
+        <li><a href="#features"><i class="bi bi-grid"></i> Features</a></li>
+        <li><a href="#modules"><i class="bi bi-layers"></i> Modules</a></li>
+        <li><a href="#contact"><i class="bi bi-chat"></i> Contact</a></li>
+        <li><a href="/login_view/" class="btn-register"><i class="bi bi-box-arrow-in-right"></i> Login</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const hdr = document.getElementById('header');
+  window.addEventListener('scroll', () => {
+    hdr.classList.toggle('scrolled', window.scrollY > 60);
+  });
+  hdr.classList.toggle('scrolled', window.scrollY > 60);
+</script>
